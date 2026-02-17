@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -134,6 +136,9 @@ body{
   background:var(--text);
   color:var(--bg);
   border-color:var(--text);
+}
+.pill.section-pill{
+  font-weight:600;
 }
 
 /* Container */
@@ -305,6 +310,71 @@ body{
 }
 .company-tag .co-country{color:var(--text-muted);margin-left:.25rem;font-size:.75rem}
 
+/* Sankey Section */
+#sankey-view{display:none}
+#sankey-view.active{display:block}
+.sankey-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+.sankey-header h2{font-size:1rem;font-weight:500;color:var(--text-secondary)}
+.sankey-legend{display:flex;flex-wrap:wrap;gap:.625rem;font-size:.75rem;color:var(--text-muted)}
+.sankey-legend span{display:flex;align-items:center;gap:.375rem}
+.sankey-legend-dot{width:10px;height:10px;border-radius:3px}
+.sankey-container{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.25rem;
+  overflow-x:auto;
+}
+.sankey-container svg text{
+  font-family:var(--font-sans);
+  font-size:11px;
+  fill:var(--text);
+}
+.sankey-tooltip{
+  position:fixed;
+  pointer-events:none;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:.625rem .875rem;
+  font-family:var(--font-sans);
+  font-size:.8125rem;
+  color:var(--text);
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  z-index:1000;
+  max-width:260px;
+  opacity:0;
+  transition:opacity .12s;
+}
+.sankey-tooltip.visible{opacity:1}
+.sankey-tooltip .tt-title{font-weight:600;margin-bottom:.25rem}
+.sankey-tooltip .tt-val{font-family:var(--font-mono);font-weight:500;color:var(--accent)}
+.sankey-tooltip .tt-sub{color:var(--text-muted);font-size:.75rem;margin-top:.125rem}
+.sankey-filter-wrap{
+  display:flex;flex-wrap:wrap;gap:.375rem;margin-bottom:1rem;
+}
+.sankey-filter{
+  padding:.25rem .625rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:500;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text-muted);
+  transition:all .15s;
+  font-family:var(--font-sans);
+}
+.sankey-filter:hover{color:var(--text);background:var(--surface-hover)}
+.sankey-filter.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+
 /* Footer */
 .footer{
   text-align:center;
@@ -362,6 +432,15 @@ body{
     <div class="overview-grid" id="overview-grid"></div>
   </div>
 
+  <div id="sankey-view">
+    <div class="sankey-header">
+      <h2>Supply Chain Flow — Mining → Processing → End Use</h2>
+    </div>
+    <div class="sankey-filter-wrap" id="sankey-filters"></div>
+    <div class="sankey-legend" id="sankey-legend"></div>
+    <div class="sankey-container" id="sankey-container"></div>
+  </div>
+
   <div class="detail" id="detail">
     <div class="detail-header">
       <h2 id="detail-title"></h2>
@@ -387,6 +466,12 @@ body{
   <span class="footer-brand">Prospector Labs · Built by Owen Coonahan</span>
 </div>
 
+<div class="sankey-tooltip" id="sankey-tooltip">
+  <div class="tt-title"></div>
+  <div class="tt-val"></div>
+  <div class="tt-sub"></div>
+</div>
+
 <script>
 // Theme
 function getTheme(){return document.documentElement.getAttribute('data-theme')}
@@ -395,10 +480,12 @@ function setTheme(t){
   document.getElementById('sunIcon').style.display=t==='dark'?'none':'block';
   document.getElementById('moonIcon').style.display=t==='dark'?'block':'none';
   localStorage.setItem('theme',t);
-  // Redraw charts if active
   if(document.getElementById('detail').classList.contains('active')){
     const name=document.getElementById('detail-title').textContent;
     if(name&&MINERALS[name])showMineral(name);
+  }
+  if(document.getElementById('sankey-view').classList.contains('active')){
+    renderSankey();
   }
 }
 function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
@@ -422,6 +509,14 @@ const MINERALS = {
   Silicon:{importReliance:33,importLabel:'33%',chinaRefining:80,topProcessor:'China (80%)',mining:[['China',71],['Russia',6],['Brazil',5],['Norway',5],['USA',3],['France',2],['Other',8]],refining:[['China',80],['Germany',5],['South Korea',5],['Norway',3],['Other',7]],uses:[['Aluminum Alloys',45],['Silicones/Chemicals',30],['Solar Polysilicon',15],['Semiconductors',5],['Other',5]],companies:[['Tongwei','CN'],['GCL-Poly','CN'],['Daqo New Energy','CN'],['Wacker Chemie','DE'],['REC Silicon','NO/US']]}
 };
 
+// Mineral color map for Sankey
+const MINERAL_COLORS = {
+  Lithium:'#3b82f6',Cobalt:'#8b5cf6',Nickel:'#06b6d4','Rare Earths':'#ec4899',
+  Copper:'#f59e0b',Graphite:'#22c55e',Gallium:'#6366f1',Germanium:'#14b8a6',
+  Tungsten:'#f97316'
+};
+const SANKEY_MINERALS = ['Lithium','Cobalt','Nickel','Rare Earths','Copper','Graphite','Gallium','Germanium','Tungsten'];
+
 function riskLevel(r){return r>=75?'high':r>=40?'med':'low'}
 
 let charts={};
@@ -437,11 +532,21 @@ function chartColors(){
   };
 }
 
-// Pills
+// Pills — with section pills
 const pillsEl=document.getElementById('pills');
 const ovPill=document.createElement('div');
-ovPill.className='pill active';ovPill.textContent='Overview';ovPill.onclick=()=>showOverview();
+ovPill.className='pill section-pill active';ovPill.textContent='Overview';ovPill.dataset.section='overview';ovPill.onclick=()=>showOverview();
 pillsEl.appendChild(ovPill);
+
+const sankeyPill=document.createElement('div');
+sankeyPill.className='pill section-pill';sankeyPill.textContent='Supply Chain Flow';sankeyPill.dataset.section='sankey';sankeyPill.onclick=()=>showSankey();
+pillsEl.appendChild(sankeyPill);
+
+// Separator
+const sep=document.createElement('div');
+sep.style.cssText='width:1px;height:20px;background:var(--border);margin:0 .25rem;align-self:center';
+pillsEl.appendChild(sep);
+
 Object.keys(MINERALS).forEach(m=>{
   const p=document.createElement('div');p.className='pill';p.textContent=m;
   p.onclick=()=>showMineral(m);pillsEl.appendChild(p);
@@ -468,23 +573,39 @@ Object.entries(MINERALS).forEach(([name,d])=>{
 });
 
 function setActivePill(name){
-  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.textContent===name||(name==='Overview'&&p.textContent==='Overview')));
+  document.querySelectorAll('.pill').forEach(p=>{
+    if(p.dataset.section==='overview') p.classList.toggle('active',name==='Overview');
+    else if(p.dataset.section==='sankey') p.classList.toggle('active',name==='Supply Chain Flow');
+    else p.classList.toggle('active',p.textContent===name);
+  });
+}
+
+function hideAllViews(){
+  document.getElementById('overview').style.display='none';
+  document.getElementById('detail').classList.remove('active');
+  document.getElementById('sankey-view').classList.remove('active');
+  destroyCharts();
 }
 
 function showOverview(){
+  hideAllViews();
   setActivePill('Overview');
   document.getElementById('overview').style.display='';
-  document.getElementById('detail').classList.remove('active');
-  destroyCharts();
+}
+
+function showSankey(){
+  hideAllViews();
+  setActivePill('Supply Chain Flow');
+  document.getElementById('sankey-view').classList.add('active');
+  renderSankey();
 }
 
 function showMineral(name){
+  hideAllViews();
   setActivePill(name);
   const d=MINERALS[name];
-  document.getElementById('overview').style.display='none';
   document.getElementById('detail').classList.add('active');
   document.getElementById('detail-title').textContent=name;
-  destroyCharts();
 
   const risk=riskLevel(d.importReliance);
   const gaugeColor=risk==='high'?'var(--red)':risk==='med'?'var(--orange)':'var(--green)';
@@ -520,7 +641,17 @@ function showMineral(name){
   charts.mining=new Chart(document.getElementById('miningChart').getContext('2d'),{type:'bar',data:{
     labels:d.mining.map(x=>x[0]),
     datasets:[{data:d.mining.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.mining.length),borderRadius:4,barThickness:18}]
-  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{
+    backgroundColor:getTheme()==='dark'?'#131316':'#ffffff',
+    titleColor:getTheme()==='dark'?'#fafafa':'#09090b',
+    bodyColor:getTheme()==='dark'?'#a1a1aa':'#52525b',
+    borderColor:getTheme()==='dark'?'#27272a':'#e4e4e7',
+    borderWidth:1,
+    titleFont:{family:'Geist',weight:'600'},
+    bodyFont:{family:'Geist Mono'},
+    padding:10,cornerRadius:8,
+    callbacks:{title:c=>`${name} — Mining`,label:c=>`${c.label}: ${c.raw}% of global production`}
+  }},scales:{
     x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},
     y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
   }}});
@@ -528,7 +659,17 @@ function showMineral(name){
   charts.refining=new Chart(document.getElementById('refiningChart').getContext('2d'),{type:'bar',data:{
     labels:d.refining.map(x=>x[0]),
     datasets:[{data:d.refining.map(x=>x[1]),backgroundColor:d.refining.map(x=>x[0]==='China'?'#ef4444':COLORS[1]),borderRadius:4,barThickness:18}]
-  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{
+    backgroundColor:getTheme()==='dark'?'#131316':'#ffffff',
+    titleColor:getTheme()==='dark'?'#fafafa':'#09090b',
+    bodyColor:getTheme()==='dark'?'#a1a1aa':'#52525b',
+    borderColor:getTheme()==='dark'?'#27272a':'#e4e4e7',
+    borderWidth:1,
+    titleFont:{family:'Geist',weight:'600'},
+    bodyFont:{family:'Geist Mono'},
+    padding:10,cornerRadius:8,
+    callbacks:{title:c=>`${name} — Refining`,label:c=>`${c.label}: ${c.raw}% of global processing`}
+  }},scales:{
     x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},
     y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
   }}});
@@ -536,9 +677,211 @@ function showMineral(name){
   charts.uses=new Chart(document.getElementById('usesChart').getContext('2d'),{type:'doughnut',data:{
     labels:d.uses.map(x=>x[0]),
     datasets:[{data:d.uses.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.uses.length),borderWidth:0,hoverOffset:6}]
-  },options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:cc.legendText,font:{size:11,family:'Geist'},padding:8,usePointStyle:true,pointStyleWidth:8}},tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}}});
+  },options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:cc.legendText,font:{size:11,family:'Geist'},padding:8,usePointStyle:true,pointStyleWidth:8}},tooltip:{
+    backgroundColor:getTheme()==='dark'?'#131316':'#ffffff',
+    titleColor:getTheme()==='dark'?'#fafafa':'#09090b',
+    bodyColor:getTheme()==='dark'?'#a1a1aa':'#52525b',
+    borderColor:getTheme()==='dark'?'#27272a':'#e4e4e7',
+    borderWidth:1,
+    titleFont:{family:'Geist',weight:'600'},
+    bodyFont:{family:'Geist Mono'},
+    padding:10,cornerRadius:8,
+    callbacks:{title:c=>`${name} — End Uses`,label:c=>`${c.label}: ${c.raw}%`}
+  }}}});
 
   document.getElementById('company-list').innerHTML=d.companies.map(([n,c])=>`<div class="company-tag">${n}<span class="co-country">${c}</span></div>`).join('');
+}
+
+// ── SANKEY DIAGRAM ──
+let sankeyActiveFilter='All';
+
+// Map end-use categories to aggregated sectors
+function mapToSector(use){
+  const u=use.toLowerCase();
+  if(u.includes('ev batter')||u.includes('battery anode'))return 'EVs / Batteries';
+  if(u.includes('grid')||u.includes('flow batter')||u.includes('nuclear')||u.includes('solar')||u.includes('hydrogen')||u.includes('fuel cell'))return 'Grid / Energy';
+  if(u.includes('defense')||u.includes('naval')||u.includes('night vision')||u.includes('ir optic')||u.includes('aerospace')||u.includes('cutting tool')||u.includes('carbide')||u.includes('mill product')||u.includes('steels/alloy'))return 'Defense / Industrial';
+  if(u.includes('semiconductor')||u.includes('gaas')||u.includes('led')||u.includes('optoelectronic')||u.includes('fiber optic')||u.includes('electronic'))return 'Semiconductors / Electronics';
+  if(u.includes('portable')||u.includes('consumer')||u.includes('jewelry')||u.includes('plating'))return 'Consumer Products';
+  if(u.includes('steel')||u.includes('aluminum')||u.includes('alloy')||u.includes('construction')||u.includes('foundri')||u.includes('industrial')||u.includes('transport'))return 'Heavy Industry';
+  if(u.includes('catalyst')||u.includes('autocat')||u.includes('chemical')||u.includes('ceramic')||u.includes('glass')||u.includes('polish')||u.includes('lubricant')||u.includes('silicone')||u.includes('brake')||u.includes('magnet')||u.includes('metallurgy')||u.includes('research')||u.includes('medical'))return 'Other Industrial';
+  return 'Other Industrial';
+}
+
+function buildSankeyData(filterMineral){
+  const minerals=filterMineral==='All'?SANKEY_MINERALS:[filterMineral];
+  const nodeMap={};
+  const links=[];
+  let nodeId=0;
+  function getNode(name){if(!(name in nodeMap)){nodeMap[name]=nodeId++;}return nodeMap[name];}
+
+  minerals.forEach(mName=>{
+    const d=MINERALS[mName];
+    const color=MINERAL_COLORS[mName];
+    // Mining → Refining (top 4 mining, top 3 refining)
+    const topMining=d.mining.filter(x=>x[0]!=='Other').slice(0,4);
+    const topRefining=d.refining.filter(x=>x[0]!=='Other').slice(0,3);
+    // End-use sectors
+    const sectors={};
+    d.uses.forEach(([use,pct])=>{
+      const s=mapToSector(use);
+      sectors[s]=(sectors[s]||0)+pct;
+    });
+
+    topMining.forEach(([country,pct])=>{
+      const src='⛏ '+country;
+      topRefining.forEach(([rCountry,rPct])=>{
+        const tgt='⚙ '+rCountry;
+        // Weight = mining share * refining share (normalized flow)
+        const val=Math.round(pct*rPct/100*10)/10;
+        if(val>0.5){
+          links.push({source:getNode(src),target:getNode(tgt),value:val,mineral:mName,color});
+        }
+      });
+    });
+
+    topRefining.forEach(([rCountry,rPct])=>{
+      const src='⚙ '+rCountry;
+      Object.entries(sectors).forEach(([sector,sPct])=>{
+        const tgt='📦 '+sector;
+        const val=Math.round(rPct*sPct/100*10)/10;
+        if(val>0.5){
+          links.push({source:getNode(src),target:getNode(tgt),value:val,mineral:mName,color});
+        }
+      });
+    });
+  });
+
+  const nodes=Object.entries(nodeMap).map(([name,id])=>({name,id})).sort((a,b)=>a.id-b.id);
+  return{nodes,links};
+}
+
+function renderSankey(){
+  const container=document.getElementById('sankey-container');
+  container.innerHTML='';
+  const dark=getTheme()==='dark';
+  const w=container.clientWidth-20;
+  const h=Math.max(500,Math.min(700,w*0.55));
+
+  const data=buildSankeyData(sankeyActiveFilter);
+  if(!data.links.length){container.innerHTML='<p style="color:var(--text-muted);padding:2rem;text-align:center">No flow data for this selection.</p>';return;}
+
+  const svg=d3.select(container).append('svg').attr('width',w).attr('height',h);
+
+  const sankey=d3.sankey()
+    .nodeId(d=>d.id)
+    .nodeWidth(14)
+    .nodePadding(10)
+    .nodeAlign(d3.sankeyLeft)
+    .extent([[1,1],[w-1,h-6]]);
+
+  const graph=sankey({
+    nodes:data.nodes.map(d=>({...d})),
+    links:data.links.map(d=>({...d}))
+  });
+
+  const tooltip=document.getElementById('sankey-tooltip');
+  function showTip(evt,html){
+    tooltip.querySelector('.tt-title').innerHTML=html.title||'';
+    tooltip.querySelector('.tt-val').innerHTML=html.val||'';
+    tooltip.querySelector('.tt-sub').innerHTML=html.sub||'';
+    tooltip.style.left=evt.clientX+12+'px';
+    tooltip.style.top=evt.clientY-10+'px';
+    tooltip.classList.add('visible');
+  }
+  function hideTip(){tooltip.classList.remove('visible');}
+
+  // Links
+  const link=svg.append('g').attr('fill','none').selectAll('g')
+    .data(graph.links).join('g')
+    .attr('class','sankey-link');
+
+  link.append('path')
+    .attr('d',d3.sankeyLinkHorizontal())
+    .attr('stroke',d=>d.color||'#3b82f6')
+    .attr('stroke-opacity',.35)
+    .attr('stroke-width',d=>Math.max(1,d.width))
+    .on('mouseover',function(evt,d){
+      d3.select(this).attr('stroke-opacity',.7);
+      showTip(evt,{title:d.mineral,val:`${d.source.name} → ${d.target.name}`,sub:`Flow weight: ${d.value}`});
+    })
+    .on('mousemove',function(evt){tooltip.style.left=evt.clientX+12+'px';tooltip.style.top=evt.clientY-10+'px';})
+    .on('mouseout',function(){d3.select(this).attr('stroke-opacity',.35);hideTip();});
+
+  // Nodes
+  const node=svg.append('g').selectAll('g')
+    .data(graph.nodes).join('g');
+
+  let selectedNode=null;
+  node.append('rect')
+    .attr('x',d=>d.x0).attr('y',d=>d.y0)
+    .attr('height',d=>Math.max(1,d.y1-d.y0))
+    .attr('width',sankey.nodeWidth())
+    .attr('fill',d=>{
+      if(d.name.startsWith('⛏'))return dark?'#a1a1aa':'#52525b';
+      if(d.name.startsWith('⚙'))return dark?'#ef4444':'#dc2626';
+      return dark?'#3b82f6':'#2563eb';
+    })
+    .attr('rx',3)
+    .attr('cursor','pointer')
+    .on('mouseover',function(evt,d){
+      showTip(evt,{title:d.name,val:`Total flow: ${Math.round(d.value)}`,sub:`${d.sourceLinks.length} outgoing · ${d.targetLinks.length} incoming`});
+    })
+    .on('mousemove',function(evt){tooltip.style.left=evt.clientX+12+'px';tooltip.style.top=evt.clientY-10+'px';})
+    .on('mouseout',function(){hideTip();})
+    .on('click',function(evt,d){
+      if(selectedNode===d){
+        selectedNode=null;
+        svg.selectAll('path').attr('stroke-opacity',.35);
+        return;
+      }
+      selectedNode=d;
+      const connectedLinks=new Set();
+      d.sourceLinks.forEach(l=>connectedLinks.add(l.index));
+      d.targetLinks.forEach(l=>connectedLinks.add(l.index));
+      svg.selectAll('.sankey-link path').attr('stroke-opacity',(l,i)=>connectedLinks.has(i)?.7:.08);
+    });
+
+  // Labels
+  node.append('text')
+    .attr('x',d=>d.x0<w/2?d.x1+6:d.x0-6)
+    .attr('y',d=>(d.y1+d.y0)/2)
+    .attr('dy','0.35em')
+    .attr('text-anchor',d=>d.x0<w/2?'start':'end')
+    .text(d=>d.name)
+    .attr('fill',dark?'#fafafa':'#09090b')
+    .attr('font-size','11px')
+    .attr('font-family','Geist, sans-serif');
+
+  // Build legend
+  const legendEl=document.getElementById('sankey-legend');
+  legendEl.innerHTML='';
+  const shownMinerals=sankeyActiveFilter==='All'?SANKEY_MINERALS:[sankeyActiveFilter];
+  shownMinerals.forEach(m=>{
+    const s=document.createElement('span');
+    s.innerHTML=`<div class="sankey-legend-dot" style="background:${MINERAL_COLORS[m]}"></div>${m}`;
+    legendEl.appendChild(s);
+  });
+}
+
+// Sankey filter pills
+(function(){
+  const wrap=document.getElementById('sankey-filters');
+  const all=document.createElement('button');
+  all.className='sankey-filter active';all.textContent='All Minerals';
+  all.onclick=()=>{sankeyActiveFilter='All';updateSankeyFilters();renderSankey();};
+  wrap.appendChild(all);
+  SANKEY_MINERALS.forEach(m=>{
+    const b=document.createElement('button');b.className='sankey-filter';b.textContent=m;
+    b.onclick=()=>{sankeyActiveFilter=m;updateSankeyFilters();renderSankey();};
+    wrap.appendChild(b);
+  });
+})();
+function updateSankeyFilters(){
+  document.querySelectorAll('.sankey-filter').forEach(b=>{
+    b.classList.toggle('active',
+      (sankeyActiveFilter==='All'&&b.textContent==='All Minerals')||b.textContent===sankeyActiveFilter);
+  });
 }
 
 showOverview();
