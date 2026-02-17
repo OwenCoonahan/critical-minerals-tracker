@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Critical Minerals Tracker | U.S. Dependency & Global Supply Chain Analysis</title>
+<meta name="description" content="Interactive dashboard tracking U.S. critical mineral dependencies, global supply chains, and geopolitical risk factors.">
+<meta property="og:title" content="Critical Minerals Tracker">
+<meta property="og:description" content="U.S. Dependency & Global Supply Chain Analysis — 14 critical minerals, real data from USGS 2024/2025">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --font-sans: 'Geist', -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+[data-theme="dark"]{
+  --bg: #09090b;
+  --bg-elevated: #0f0f12;
+  --surface: #131316;
+  --surface-hover: #1a1a1f;
+  --border: #27272a;
+  --border-hover: #3f3f46;
+  --text: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #3b82f6;
+  --red: #ef4444;
+  --red-muted: rgba(239,68,68,.12);
+  --orange: #f59e0b;
+  --orange-muted: rgba(245,158,11,.12);
+  --green: #22c55e;
+  --green-muted: rgba(34,197,94,.12);
+  --chart-grid: #1e1e22;
+}
+
+[data-theme="light"]{
+  --bg: #ffffff;
+  --bg-elevated: #fafafa;
+  --surface: #ffffff;
+  --surface-hover: #f4f4f5;
+  --border: #e4e4e7;
+  --border-hover: #d4d4d8;
+  --text: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --accent: #2563eb;
+  --red: #dc2626;
+  --red-muted: rgba(220,38,38,.08);
+  --orange: #d97706;
+  --orange-muted: rgba(217,119,6,.08);
+  --green: #16a34a;
+  --green-muted: rgba(22,163,74,.08);
+  --chart-grid: #f0f0f2;
+}
+
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  transition: background .2s, color .2s;
+}
+
+/* Header */
+.header{
+  border-bottom:1px solid var(--border);
+  padding:1.5rem 2rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1400px;
+  margin:0 auto;
+}
+.header-left h1{
+  font-size:1.25rem;
+  font-weight:600;
+  letter-spacing:-.02em;
+  color:var(--text);
+}
+.header-left p{
+  color:var(--text-muted);
+  font-size:.8125rem;
+  margin-top:.125rem;
+  font-weight:400;
+}
+.theme-toggle{
+  width:36px;height:36px;
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text-secondary);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  flex-shrink:0;
+}
+.theme-toggle:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--text)}
+.theme-toggle svg{width:16px;height:16px}
+
+/* Pills */
+.pills-wrap{
+  padding:.75rem 2rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:.375rem;
+  border-bottom:1px solid var(--border);
+  max-width:1400px;
+  margin:0 auto;
+}
+.pill{
+  padding:.375rem .75rem;
+  border-radius:999px;
+  font-size:.8125rem;
+  font-weight:500;
+  cursor:pointer;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--text-muted);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.pill:hover{color:var(--text);background:var(--surface-hover)}
+.pill.active{
+  background:var(--text);
+  color:var(--bg);
+  border-color:var(--text);
+}
+
+/* Container */
+.container{max-width:1400px;margin:0 auto;padding:2rem}
+
+/* Overview */
+.overview-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+.overview-header h2{font-size:1rem;font-weight:500;color:var(--text-secondary)}
+.legend{display:flex;gap:1rem;font-size:.75rem;color:var(--text-muted)}
+.legend span{display:flex;align-items:center;gap:.375rem}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.legend-dot.red{background:var(--red)}
+.legend-dot.yellow{background:var(--orange)}
+.legend-dot.green{background:var(--green)}
+
+/* Overview Grid */
+.overview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:.75rem;
+}
+.mineral-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.25rem;
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;
+}
+.mineral-card:hover{
+  border-color:var(--border-hover);
+  background:var(--surface-hover);
+}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.mc-name{font-size:.875rem;font-weight:600;letter-spacing:-.01em}
+.mc-badge{
+  font-family:var(--font-mono);
+  font-size:.6875rem;
+  font-weight:500;
+  padding:.2rem .5rem;
+  border-radius:999px;
+  letter-spacing:.01em;
+}
+.mc-badge.high{background:var(--red-muted);color:var(--red)}
+.mc-badge.med{background:var(--orange-muted);color:var(--orange)}
+.mc-badge.low{background:var(--green-muted);color:var(--green)}
+
+.mc-import{
+  font-family:var(--font-mono);
+  font-size:2rem;
+  font-weight:700;
+  letter-spacing:-.03em;
+  line-height:1;
+  margin-bottom:.25rem;
+}
+.mc-import.high{color:var(--red)}
+.mc-import.med{color:var(--orange)}
+.mc-import.low{color:var(--green)}
+
+.mc-sublabel{font-size:.75rem;color:var(--text-muted);margin-bottom:1rem}
+
+.mc-row{display:flex;justify-content:space-between;font-size:.8125rem;padding:.25rem 0}
+.mc-row+.mc-row{border-top:1px solid var(--border)}
+.mc-label{color:var(--text-muted)}
+.mc-val{font-family:var(--font-mono);font-weight:500;font-size:.8125rem}
+
+/* Detail View */
+.detail{display:none}
+.detail.active{display:block}
+.detail-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:2rem;
+}
+.detail-header h2{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+.back-btn{
+  padding:.5rem .875rem;
+  border-radius:var(--radius);
+  font-size:.8125rem;
+  font-weight:500;
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text-secondary);
+  font-family:var(--font-sans);
+  transition:all .15s;
+}
+.back-btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface-hover)}
+
+/* Stat Cards */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:.75rem;
+  margin-bottom:2rem;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.25rem;
+}
+.stat-label{
+  font-size:.75rem;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-weight:500;
+  margin-bottom:.75rem;
+}
+.stat-value{
+  font-family:var(--font-mono);
+  font-size:1.75rem;
+  font-weight:700;
+  letter-spacing:-.03em;
+  line-height:1;
+}
+.stat-sub{font-size:.75rem;color:var(--text-muted);margin-top:.375rem}
+
+/* Gauge */
+.gauge-wrap{display:flex;align-items:center;gap:1rem}
+.gauge-bar-track{
+  flex:1;height:8px;border-radius:99px;
+  background:var(--border);
+  overflow:hidden;
+}
+.gauge-bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
+
+/* Charts */
+.charts-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.75rem;
+  margin-bottom:.75rem;
+}
+.chart-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.25rem;
+}
+.chart-box h3{
+  font-size:.8125rem;
+  font-weight:500;
+  color:var(--text-secondary);
+  margin-bottom:1rem;
+}
+.chart-box canvas{max-height:280px}
+
+/* Companies */
+.company-list{display:flex;flex-wrap:wrap;gap:.375rem}
+.company-tag{
+  padding:.375rem .625rem;
+  border-radius:var(--radius);
+  font-size:.8125rem;
+  background:var(--surface-hover);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-weight:400;
+}
+.company-tag .co-country{color:var(--text-muted);margin-left:.25rem;font-size:.75rem}
+
+/* Footer */
+.footer{
+  text-align:center;
+  padding:2.5rem 2rem;
+  font-size:.75rem;
+  color:var(--text-muted);
+  border-top:1px solid var(--border);
+  max-width:1400px;
+  margin:2rem auto 0;
+  line-height:1.8;
+}
+.footer-brand{font-weight:500;color:var(--text-secondary)}
+
+/* Responsive */
+@media(max-width:768px){
+  .header{padding:1rem}
+  .header-left h1{font-size:1.125rem}
+  .pills-wrap{padding:.625rem 1rem}
+  .container{padding:1rem}
+  .charts-grid{grid-template-columns:1fr}
+  .overview-grid{grid-template-columns:1fr 1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .overview-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Critical Minerals Tracker</h1>
+    <p>U.S. Dependency & Global Supply Chain Analysis</p>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" id="themeBtn">
+    <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+    <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+  </button>
+</div>
+
+<div class="pills-wrap" id="pills"></div>
+
+<div class="container">
+  <div id="overview">
+    <div class="overview-header">
+      <h2>Supply Chain Risk Overview</h2>
+      <div class="legend">
+        <span><div class="legend-dot red"></div>High Risk (≥75%)</span>
+        <span><div class="legend-dot yellow"></div>Moderate (40–74%)</span>
+        <span><div class="legend-dot green"></div>Lower (&lt;40%)</span>
+      </div>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="detail-header">
+      <h2 id="detail-title"></h2>
+      <button class="back-btn" onclick="showOverview()">← Back</button>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="charts-grid">
+      <div class="chart-box"><h3>Mining Production — Top Countries</h3><canvas id="miningChart"></canvas></div>
+      <div class="chart-box"><h3>Refining / Processing</h3><canvas id="refiningChart"></canvas></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-box"><h3>Primary End Uses</h3><canvas id="usesChart"></canvas></div>
+      <div class="chart-box" id="companies-section">
+        <h3>Key Companies</h3>
+        <div class="company-list" id="company-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Sources: USGS Mineral Commodity Summaries 2024/2025 · IEA Critical Minerals Market Review · DOE Critical Materials Assessment<br>
+  <span class="footer-brand">Prospector Labs · Built by Owen Coonahan</span>
+</div>
+
+<script>
+// Theme
+function getTheme(){return document.documentElement.getAttribute('data-theme')}
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('sunIcon').style.display=t==='dark'?'none':'block';
+  document.getElementById('moonIcon').style.display=t==='dark'?'block':'none';
+  localStorage.setItem('theme',t);
+  // Redraw charts if active
+  if(document.getElementById('detail').classList.contains('active')){
+    const name=document.getElementById('detail-title').textContent;
+    if(name&&MINERALS[name])showMineral(name);
+  }
+}
+function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
+if(localStorage.getItem('theme'))setTheme(localStorage.getItem('theme'));else setTheme('dark');
+
+const COLORS=['#3b82f6','#06b6d4','#8b5cf6','#f59e0b','#ec4899','#22c55e','#6366f1','#14b8a6','#f97316','#d946ef','#84cc16','#ef4444'];
+const MINERALS = {
+  Lithium:{importReliance:25,importLabel:'>25%',chinaRefining:65,topProcessor:'China (65%)',mining:[['Australia',47],['Chile',25],['China',15],['Argentina',6],['Brazil',3],['Other',4]],refining:[['China',65],['Chile',20],['Argentina',5],['Other',10]],uses:[['EV Batteries',74],['Portable Electronics',9],['Grid Storage',7],['Ceramics/Glass',4],['Lubricants',3],['Other',3]],companies:[['Albemarle','US'],['SQM','Chile'],['Pilbara Minerals','AU'],['Ganfeng Lithium','CN'],['Tianqi Lithium','CN'],['Arcadium','US'],['Mineral Resources','AU']]},
+  Cobalt:{importReliance:76,importLabel:'76%',chinaRefining:74,topProcessor:'China (74%)',mining:[['DRC',73],['Indonesia',5],['Russia',4],['Australia',3],['Philippines',3],['Canada',2],['Other',10]],refining:[['China',74],['Finland',10],['Belgium',5],['Canada',3],['Other',8]],uses:[['EV Batteries',40],['Portable Electronics',30],['Aerospace Superalloys',15],['Catalysts',5],['Cutting Tools',5],['Other',5]],companies:[['Glencore','CH'],['CMOC','CN'],['Barrick Gold','CA'],['Huayou Cobalt','CN'],['Umicore','BE']]},
+  Nickel:{importReliance:56,importLabel:'56%',chinaRefining:35,topProcessor:'China (35%)',mining:[['Indonesia',55],['Philippines',10],['Russia',6],['New Caledonia',5],['Australia',4],['Canada',4],['China',3],['Other',13]],refining:[['China',35],['Indonesia',25],['Japan',8],['Russia',5],['Finland',4],['Australia',3],['Other',20]],uses:[['Stainless Steel',65],['EV Batteries',15],['Alloys/Superalloys',8],['Plating',6],['Other',6]],companies:[['Vale','BR'],['Norilsk Nickel','RU'],['BHP','AU'],['Glencore','CH'],['Tsingshan','CN']]},
+  'Rare Earths':{importReliance:95,importLabel:'>95%',chinaRefining:90,topProcessor:'China (90%)',mining:[['China',70],['Myanmar',10],['Australia',6],['USA',4],['India',2],['Thailand',2],['Other',6]],refining:[['China',90],['Malaysia',5],['Estonia/Japan',3],['Other',2]],uses:[['Permanent Magnets',38],['Catalysts',23],['Polishing',12],['Glass',8],['Metallurgy',8],['Ceramics',5],['Other',6]],companies:[['Northern Rare Earths','CN'],['China Southern RE','CN'],['MP Materials','US'],['Lynas Rare Earths','AU'],['Iluka Resources','AU']]},
+  Copper:{importReliance:45,importLabel:'45%',chinaRefining:42,topProcessor:'China (42%)',mining:[['Chile',24],['DRC',12],['Peru',10],['China',8],['USA',5],['Indonesia',5],['Australia',4],['Russia',4],['Other',28]],refining:[['China',42],['Chile',9],['Japan',7],['DRC',5],['India',4],['Russia',3],['USA',3],['Other',27]],uses:[['Electrical/Power',65],['Construction',15],['Transportation',7],['Industrial',7],['Consumer',6]],companies:[['Codelco','Chile'],['Freeport-McMoRan','US'],['BHP','AU'],['Southern Copper','MX'],['Glencore','CH'],['Ivanhoe Mines','CA']]},
+  Graphite:{importReliance:100,importLabel:'100%',chinaRefining:90,topProcessor:'China (90%+)',mining:[['China',65],['Mozambique',11],['Brazil',7],['Madagascar',5],['India',3],['Other',9]],refining:[['China',90],['Japan',4],['Other',6]],uses:[['EV Battery Anodes',55],['Steelmaking',20],['Foundries',8],['Lubricants',5],['Brake Linings',5],['Other',7]],companies:[['BTR New Material','CN'],['Showa Denko','JP'],['Syrah Resources','AU'],['Northern Graphite','CA'],['Nouveau Monde','CA']]},
+  Manganese:{importReliance:100,importLabel:'100%',chinaRefining:93,topProcessor:'China (93%)',mining:[['South Africa',37],['Gabon',18],['Australia',15],['China',6],['Ghana',5],['Brazil',4],['India',4],['Other',11]],refining:[['China',93],['Other',7]],uses:[['Steelmaking',90],['EV Batteries',5],['Aluminum Alloys',3],['Other',2]],companies:[['South32','AU'],['Eramet','FR'],['MOIL','India'],['Assmang','SA'],['Jupiter Mines','AU']]},
+  Gallium:{importReliance:100,importLabel:'100%',chinaRefining:98,topProcessor:'China (98%)',mining:[['China',98],['Japan',1],['Russia',0.5],['Other',0.5]],refining:[['China',98],['Japan',1],['Other',1]],uses:[['Semiconductors (GaAs)',70],['LEDs/Optoelectronics',20],['Solar (Space/Military)',5],['Research',5]],companies:[['Chinalco','CN'],['CMC','CN'],['AXT Inc','US'],['Freiberger','DE'],['Coherent','US']]},
+  Germanium:{importReliance:50,importLabel:'>50%',chinaRefining:60,topProcessor:'China (60%)',mining:[['China',60],['Belgium',15],['Canada',10],['Russia',5],['USA',5],['Other',5]],refining:[['China',60],['Belgium',15],['Canada',10],['Russia',5],['USA',5],['Other',5]],uses:[['Fiber Optics',35],['IR Optics/Night Vision',25],['Solar Cells',15],['Catalysts',10],['Other',15]],companies:[['Yunnan Germanium','CN'],['Umicore','BE'],['Teck Resources','CA']]},
+  Tungsten:{importReliance:50,importLabel:'50%',chinaRefining:82,topProcessor:'China (82%)',mining:[['China',82],['Vietnam',5],['Russia',3],['Bolivia',2],['Rwanda',2],['Other',6]],refining:[['China',82],['Austria',4],['Other',14]],uses:[['Cutting Tools/Carbide',55],['Mill Products',20],['Steels/Alloys',15],['Chemicals',10]],companies:[['China Minmetals','CN'],['Xiamen Tungsten','CN'],['Wolfram Bergbau','AT'],['Kennametal','US'],['Sandvik','SE']]},
+  Vanadium:{importReliance:72,importLabel:'72%',chinaRefining:66,topProcessor:'China (66%)',mining:[['China',66],['Russia',18],['South Africa',8],['Brazil',6],['Other',2]],refining:[['China',66],['Russia',18],['South Africa',8],['Brazil',6],['Other',2]],uses:[['Steel Alloys',90],['Flow Batteries (VRFB)',5],['Titanium Alloys',3],['Chemicals',2]],companies:[['Pangang Group','CN'],['Evraz','RU'],['Bushveld Minerals','SA'],['Largo Inc','BR/CA']]},
+  'Platinum Group':{importReliance:77,importLabel:'77%',chinaRefining:8,topProcessor:'South Africa (45%)',mining:[['South Africa',72],['Russia',10],['Zimbabwe',8],['Canada',5],['USA',2],['Other',3]],refining:[['South Africa',45],['Russia',25],['UK',10],['Japan',8],['USA',5],['Other',7]],uses:[['Autocatalysts',40],['Jewelry',25],['Hydrogen/Fuel Cells',15],['Chemical Catalysts',10],['Electronics',5],['Other',5]],companies:[['Anglo American Platinum','SA'],['Impala Platinum','SA'],['Sibanye-Stillwater','SA/US'],['Norilsk Nickel','RU']]},
+  Uranium:{importReliance:90,importLabel:'>90%',chinaRefining:12,topProcessor:'Russia (38%)',mining:[['Kazakhstan',43],['Canada',15],['Namibia',11],['Australia',8],['Uzbekistan',7],['Russia',5],['Niger',4],['Other',7]],refining:[['Russia',38],['Urenco (EU)',30],['Orano (France)',15],['China',12],['USA',5]],uses:[['Nuclear Power',93],['Medical Isotopes',3],['Defense/Naval',3],['Research',1]],companies:[['Kazatomprom','KZ'],['Cameco','CA'],['Orano','FR'],['Energy Fuels','US'],['Centrus Energy','US']]},
+  Silicon:{importReliance:33,importLabel:'33%',chinaRefining:80,topProcessor:'China (80%)',mining:[['China',71],['Russia',6],['Brazil',5],['Norway',5],['USA',3],['France',2],['Other',8]],refining:[['China',80],['Germany',5],['South Korea',5],['Norway',3],['Other',7]],uses:[['Aluminum Alloys',45],['Silicones/Chemicals',30],['Solar Polysilicon',15],['Semiconductors',5],['Other',5]],companies:[['Tongwei','CN'],['GCL-Poly','CN'],['Daqo New Energy','CN'],['Wacker Chemie','DE'],['REC Silicon','NO/US']]}
+};
+
+function riskLevel(r){return r>=75?'high':r>=40?'med':'low'}
+
+let charts={};
+function destroyCharts(){Object.values(charts).forEach(c=>c.destroy());charts={}}
+
+function chartColors(){
+  const dark=getTheme()==='dark';
+  return{
+    grid:dark?'#1e1e22':'#f0f0f2',
+    tick:dark?'#71717a':'#a1a1aa',
+    label:dark?'#fafafa':'#09090b',
+    legendText:dark?'#a1a1aa':'#52525b'
+  };
+}
+
+// Pills
+const pillsEl=document.getElementById('pills');
+const ovPill=document.createElement('div');
+ovPill.className='pill active';ovPill.textContent='Overview';ovPill.onclick=()=>showOverview();
+pillsEl.appendChild(ovPill);
+Object.keys(MINERALS).forEach(m=>{
+  const p=document.createElement('div');p.className='pill';p.textContent=m;
+  p.onclick=()=>showMineral(m);pillsEl.appendChild(p);
+});
+
+// Overview grid
+const gridEl=document.getElementById('overview-grid');
+Object.entries(MINERALS).forEach(([name,d])=>{
+  const risk=riskLevel(d.importReliance);
+  const card=document.createElement('div');
+  card.className='mineral-card';
+  card.onclick=()=>showMineral(name);
+  card.innerHTML=`
+    <div class="mc-top">
+      <div class="mc-name">${name}</div>
+      <span class="mc-badge ${risk}">${risk==='high'?'High Risk':risk==='med'?'Moderate':'Lower'}</span>
+    </div>
+    <div class="mc-import ${risk}">${d.importLabel}</div>
+    <div class="mc-sublabel">U.S. Net Import Reliance</div>
+    <div class="mc-row"><span class="mc-label">Top Processor</span><span class="mc-val">${d.topProcessor}</span></div>
+    <div class="mc-row"><span class="mc-label">China Refining</span><span class="mc-val">${d.chinaRefining}%</span></div>
+  `;
+  gridEl.appendChild(card);
+});
+
+function setActivePill(name){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.textContent===name||(name==='Overview'&&p.textContent==='Overview')));
+}
+
+function showOverview(){
+  setActivePill('Overview');
+  document.getElementById('overview').style.display='';
+  document.getElementById('detail').classList.remove('active');
+  destroyCharts();
+}
+
+function showMineral(name){
+  setActivePill(name);
+  const d=MINERALS[name];
+  document.getElementById('overview').style.display='none';
+  document.getElementById('detail').classList.add('active');
+  document.getElementById('detail-title').textContent=name;
+  destroyCharts();
+
+  const risk=riskLevel(d.importReliance);
+  const gaugeColor=risk==='high'?'var(--red)':risk==='med'?'var(--orange)':'var(--green)';
+  const pct=d.importReliance;
+
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card">
+      <div class="stat-label">Import Reliance</div>
+      <div class="stat-value" style="color:${gaugeColor}">${d.importLabel}</div>
+      <div style="margin-top:.75rem">
+        <div class="gauge-bar-track"><div class="gauge-bar-fill" style="width:${pct}%;background:${gaugeColor}"></div></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">China Refining</div>
+      <div class="stat-value" style="color:${d.chinaRefining>=70?'var(--red)':d.chinaRefining>=40?'var(--orange)':'var(--green)'}">${d.chinaRefining}%</div>
+      <div class="stat-sub">of global processing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Processor</div>
+      <div class="stat-value" style="font-size:1.25rem;margin-top:.25rem">${d.topProcessor.split(' (')[0]}</div>
+      <div class="stat-sub">${d.topProcessor}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Risk Level</div>
+      <div class="stat-value" style="color:${gaugeColor}">${risk==='high'?'HIGH':risk==='med'?'MOD.':'LOW'}</div>
+      <div class="stat-sub">supply chain vulnerability</div>
+    </div>
+  `;
+
+  const cc=chartColors();
+
+  charts.mining=new Chart(document.getElementById('miningChart').getContext('2d'),{type:'bar',data:{
+    labels:d.mining.map(x=>x[0]),
+    datasets:[{data:d.mining.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.mining.length),borderRadius:4,barThickness:18}]
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{
+    x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},
+    y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
+  }}});
+
+  charts.refining=new Chart(document.getElementById('refiningChart').getContext('2d'),{type:'bar',data:{
+    labels:d.refining.map(x=>x[0]),
+    datasets:[{data:d.refining.map(x=>x[1]),backgroundColor:d.refining.map(x=>x[0]==='China'?'#ef4444':COLORS[1]),borderRadius:4,barThickness:18}]
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{
+    x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},
+    y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
+  }}});
+
+  charts.uses=new Chart(document.getElementById('usesChart').getContext('2d'),{type:'doughnut',data:{
+    labels:d.uses.map(x=>x[0]),
+    datasets:[{data:d.uses.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.uses.length),borderWidth:0,hoverOffset:6}]
+  },options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:cc.legendText,font:{size:11,family:'Geist'},padding:8,usePointStyle:true,pointStyleWidth:8}},tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}}});
+
+  document.getElementById('company-list').innerHTML=d.companies.map(([n,c])=>`<div class="company-tag">${n}<span class="co-country">${c}</span></div>`).join('');
+}
+
+showOverview();
+</script>
+</body>
+</html>
