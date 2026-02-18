@@ -941,6 +941,26 @@ body{
   }
   [data-theme="dark"]{--text:#000;--text-secondary:#333;--text-muted:#666;--border:#ddd;--surface:#fff;--bg:#fff}
 }
+
+/* ── V4.5: Clickable Charts & Industry Panels ── */
+.chart-box canvas.clickable-chart{cursor:pointer}
+.bar-hover-hint{position:absolute;bottom:4px;right:8px;font-size:.625rem;color:var(--text-muted);font-family:var(--font-mono);pointer-events:none;opacity:0;transition:opacity .2s}
+.chart-box:hover .bar-hover-hint{opacity:1}
+.sp-industry-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius);font-size:1.125rem;flex-shrink:0}
+.sp-consumer-card{display:flex;align-items:center;gap:.75rem;padding:.625rem;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.375rem;cursor:pointer;transition:all .15s}
+.sp-consumer-card:hover{border-color:var(--accent);background:var(--surface-hover)}
+.sp-consumer-card .consumer-flag{font-size:1.25rem;flex-shrink:0}
+.sp-consumer-card .consumer-info{flex:1;min-width:0}
+.sp-consumer-card .consumer-name{font-size:.8125rem;font-weight:600}
+.sp-consumer-card .consumer-role{font-size:.6875rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.export-dest-row{display:flex;align-items:center;gap:.5rem;padding:.375rem 0;font-size:.8125rem}
+.export-dest-row+.export-dest-row{border-top:1px solid var(--border)}
+.export-dest-label{width:90px;flex-shrink:0;font-weight:500;font-size:.8125rem}
+.export-dest-track{flex:1;height:14px;background:var(--border);border-radius:4px;overflow:hidden}
+.export-dest-fill{height:100%;border-radius:4px;transition:width .3s}
+.export-dest-pct{width:40px;text-align:right;font-family:var(--font-mono);font-size:.75rem;color:var(--text-secondary);flex-shrink:0}
+.mini-sankey-wrap{margin:1rem 0;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;overflow-x:auto}
+.mini-sankey-wrap svg text{font-family:var(--font-sans);font-size:10px;fill:var(--text)}
 </style>
 </head>
 <body>
@@ -1731,6 +1751,115 @@ const MINERALS = {
   Silicon:{importReliance:33,importLabel:'33%',chinaRefining:80,topProcessor:'China (80%)',mining:[['China',71],['Russia',6],['Brazil',5],['Norway',5],['USA',3],['France',2],['Other',8]],refining:[['China',80],['Germany',5],['South Korea',5],['Norway',3],['Other',7]],uses:[['Aluminum Alloys',45],['Silicones/Chemicals',30],['Solar Polysilicon',15],['Semiconductors',5],['Other',5]],companies:[['Tongwei','CN'],['GCL-Poly','CN'],['Daqo New Energy','CN'],['Wacker Chemie','DE'],['REC Silicon','NO/US']]}
 };
 
+// ══════════════════════════════════════════════════════════════
+// V4.5: END-USE INDUSTRY DATA
+// ══════════════════════════════════════════════════════════════
+const END_USE_DATA = {
+  Lithium:{
+    'EV Batteries':{desc:'Lithium is the core cathode material in lithium-ion batteries powering electric vehicles. Both lithium carbonate and lithium hydroxide are used in NMC, LFP, and NCA battery chemistries.',pct:74,icon:'🔋',consumers:[{name:'CATL',flag:'🇨🇳',role:'World\'s largest EV battery manufacturer'},{name:'BYD',flag:'🇨🇳',role:'Vertically integrated EV & battery maker'},{name:'LG Energy Solution',flag:'🇰🇷',role:'Major EV battery supplier to GM, Hyundai'},{name:'Panasonic',flag:'🇯🇵',role:'Tesla\'s primary battery partner'},{name:'Tesla',flag:'🇺🇸',role:'EV manufacturer with in-house battery production'},{name:'Samsung SDI',flag:'🇰🇷',role:'Battery cells for BMW, Stellantis'}]},
+    'Portable Electronics':{desc:'Lithium-ion batteries in smartphones, laptops, tablets, and wearables rely on lithium cathode materials.',pct:9,icon:'📱',consumers:[{name:'Apple',flag:'🇺🇸',role:'Consumer electronics & devices'},{name:'Samsung',flag:'🇰🇷',role:'Smartphones, tablets, wearables'},{name:'Sony',flag:'🇯🇵',role:'Gaming, electronics, entertainment'}]},
+    'Grid Storage':{desc:'Utility-scale lithium-ion battery storage systems for renewable energy integration and grid stabilization.',pct:7,icon:'⚡',consumers:[{name:'Tesla',flag:'🇺🇸',role:'Megapack grid storage systems'},{name:'Fluence',flag:'🇺🇸',role:'Grid-scale energy storage solutions'},{name:'BYD',flag:'🇨🇳',role:'Utility storage systems'},{name:'CATL',flag:'🇨🇳',role:'EnerOne grid storage batteries'}]},
+    'Ceramics/Glass':{desc:'Lithium compounds lower melting points and improve thermal properties in ceramic and glass manufacturing.',pct:4,icon:'🏺',consumers:[{name:'Corning',flag:'🇺🇸',role:'Specialty glass manufacturer'},{name:'Saint-Gobain',flag:'🇫🇷',role:'Building materials & glass'}]},
+    'Lubricants':{desc:'Lithium-based greases are the most widely used lubricants in automotive and industrial applications.',pct:3,icon:'⚙️',consumers:[{name:'Shell',flag:'🇳🇱',role:'Industrial & automotive lubricants'},{name:'ExxonMobil',flag:'🇺🇸',role:'Lubricant manufacturing'}]},
+  },
+  Cobalt:{
+    'EV Batteries':{desc:'Cobalt stabilizes cathode structures in NMC and NCA lithium-ion batteries, improving energy density and cycle life.',pct:40,icon:'🔋',consumers:[{name:'CATL',flag:'🇨🇳',role:'Uses cobalt in NMC811 and NMC622 cells'},{name:'LG Energy Solution',flag:'🇰🇷',role:'NMC cathode battery production'},{name:'Samsung SDI',flag:'🇰🇷',role:'NMC battery cells for EVs'},{name:'Panasonic',flag:'🇯🇵',role:'NCA cells for Tesla'}]},
+    'Portable Electronics':{desc:'Cobalt-containing lithium-ion batteries power smartphones, laptops, and tablets with high energy density.',pct:30,icon:'📱',consumers:[{name:'Apple',flag:'🇺🇸',role:'iPhone, MacBook, iPad batteries'},{name:'Samsung',flag:'🇰🇷',role:'Galaxy device batteries'},{name:'Sony',flag:'🇯🇵',role:'Electronics & gaming devices'}]},
+    'Aerospace Superalloys':{desc:'Cobalt-based superalloys withstand extreme temperatures in jet engines and gas turbines.',pct:15,icon:'✈️',consumers:[{name:'GE Aerospace',flag:'🇺🇸',role:'Jet engine manufacturer'},{name:'Rolls-Royce',flag:'🇬🇧',role:'Aerospace engine systems'},{name:'RTX',flag:'🇺🇸',role:'Pratt & Whitney engines'}]},
+    'Catalysts':{desc:'Cobalt catalysts are used in petroleum refining (hydrodesulfurization) and chemical synthesis.',pct:5,icon:'⚗️',consumers:[{name:'BASF',flag:'🇩🇪',role:'Chemical catalysts producer'},{name:'Johnson Matthey',flag:'🇬🇧',role:'Catalyst technologies'}]},
+    'Cutting Tools':{desc:'Cobalt binds tungsten carbide particles in cemented carbide cutting tools.',pct:5,icon:'🔧',consumers:[{name:'Sandvik',flag:'🇸🇪',role:'Cemented carbide tools'},{name:'Kennametal',flag:'🇺🇸',role:'Industrial cutting tools'}]},
+  },
+  Nickel:{
+    'Stainless Steel':{desc:'Nickel is essential for austenitic stainless steel, providing corrosion resistance for construction, appliances, and industrial equipment.',pct:65,icon:'🏗️',consumers:[{name:'ArcelorMittal',flag:'🇱🇺',role:'World\'s largest steelmaker'},{name:'Nippon Steel',flag:'🇯🇵',role:'Major Japanese steel producer'},{name:'Baowu',flag:'🇨🇳',role:'China\'s largest steel group'},{name:'POSCO',flag:'🇰🇷',role:'Korean steelmaker, stainless specialist'}]},
+    'EV Batteries':{desc:'High-nickel cathodes (NMC811, NCA) provide higher energy density for longer EV range.',pct:15,icon:'🔋',consumers:[{name:'CATL',flag:'🇨🇳',role:'High-nickel NMC cell production'},{name:'Tesla',flag:'🇺🇸',role:'4680 high-nickel cells'},{name:'LG Energy Solution',flag:'🇰🇷',role:'NCMA battery cells'},{name:'Samsung SDI',flag:'🇰🇷',role:'NMC battery production'}]},
+    'Alloys/Superalloys':{desc:'Nickel superalloys are critical for jet engines, gas turbines, and high-temperature industrial applications.',pct:8,icon:'✈️',consumers:[{name:'GE Aerospace',flag:'🇺🇸',role:'LEAP & GE9X jet engines'},{name:'Rolls-Royce',flag:'🇬🇧',role:'Trent engine series'},{name:'RTX',flag:'🇺🇸',role:'Pratt & Whitney GTF engines'}]},
+    'Plating':{desc:'Nickel electroplating provides corrosion protection and decorative finishes on metals.',pct:6,icon:'✨',consumers:[{name:'MacDermid Enthone',flag:'🇺🇸',role:'Surface finishing chemicals'},{name:'Atotech',flag:'🇩🇪',role:'Plating technology'}]},
+  },
+  'Rare Earths':{
+    'Permanent Magnets':{desc:'Neodymium-iron-boron (NdFeB) magnets are used in EV motors, wind turbines, and electronics. The single largest and most strategically important rare earth application.',pct:38,icon:'🧲',consumers:[{name:'Tesla',flag:'🇺🇸',role:'Permanent magnet EV motors'},{name:'Siemens Gamesa',flag:'🇩🇪',role:'Wind turbine generators'},{name:'Toyota',flag:'🇯🇵',role:'Hybrid/EV drive motors'},{name:'Apple',flag:'🇺🇸',role:'Speakers, haptics, sensors'}]},
+    'Catalysts':{desc:'Cerium and lanthanum are used in automotive catalytic converters and petroleum refining catalysts.',pct:23,icon:'⚗️',consumers:[{name:'BASF',flag:'🇩🇪',role:'Automotive & industrial catalysts'},{name:'Johnson Matthey',flag:'🇬🇧',role:'Emission control catalysts'},{name:'Umicore',flag:'🇧🇪',role:'Automotive catalyst recycling'}]},
+    'Polishing':{desc:'Cerium oxide is the primary polishing compound for precision glass, semiconductor wafers, and LCD screens.',pct:12,icon:'💎',consumers:[{name:'TSMC',flag:'🇹🇼',role:'Semiconductor wafer polishing (CMP)'},{name:'Samsung',flag:'🇰🇷',role:'Display glass polishing'},{name:'Intel',flag:'🇺🇸',role:'Chip manufacturing CMP'}]},
+    'Glass':{desc:'Rare earth oxides (cerium, lanthanum) clarify, color, and add UV absorption to specialty glass.',pct:8,icon:'🔍',consumers:[{name:'Corning',flag:'🇺🇸',role:'Specialty glass products'},{name:'SCHOTT',flag:'🇩🇪',role:'Optical & specialty glass'}]},
+    'Metallurgy':{desc:'Rare earth additions improve steel and aluminum alloys\' strength and workability.',pct:8,icon:'🏗️',consumers:[{name:'ArcelorMittal',flag:'🇱🇺',role:'Specialty steel alloys'},{name:'Nippon Steel',flag:'🇯🇵',role:'Advanced steel metallurgy'}]},
+    'Ceramics':{desc:'Yttrium and other rare earths enable high-performance ceramics for electronics and thermal barriers.',pct:5,icon:'🏺',consumers:[{name:'Kyocera',flag:'🇯🇵',role:'Advanced ceramic components'},{name:'CoorsTek',flag:'🇺🇸',role:'Engineered ceramic solutions'}]},
+  },
+  Copper:{
+    'Electrical/Power':{desc:'Copper\'s unmatched electrical conductivity makes it essential for power cables, transformers, EV wiring, and renewable energy systems.',pct:65,icon:'⚡',consumers:[{name:'Tesla',flag:'🇺🇸',role:'EVs use 4x more copper than ICE vehicles'},{name:'Siemens Energy',flag:'🇩🇪',role:'Power transformers and grid equipment'},{name:'Nexans',flag:'🇫🇷',role:'Power cables & connectivity'},{name:'Prysmian',flag:'🇮🇹',role:'Energy & telecom cable systems'}]},
+    'Construction':{desc:'Copper plumbing, roofing, and architectural applications leverage its durability and antimicrobial properties.',pct:15,icon:'🏗️',consumers:[{name:'Saint-Gobain',flag:'🇫🇷',role:'Building materials & construction'},{name:'Mueller Water',flag:'🇺🇸',role:'Copper tube & fittings'}]},
+    'Transportation':{desc:'Automotive wiring harnesses, EV motors, and aerospace systems require high-purity copper.',pct:7,icon:'🚗',consumers:[{name:'Toyota',flag:'🇯🇵',role:'Automotive wiring & motors'},{name:'Boeing',flag:'🇺🇸',role:'Aircraft electrical systems'}]},
+    'Industrial':{desc:'Industrial machinery, heat exchangers, and marine applications use copper for thermal and electrical conductivity.',pct:7,icon:'🏭',consumers:[{name:'Caterpillar',flag:'🇺🇸',role:'Heavy equipment & machinery'},{name:'ABB',flag:'🇨🇭',role:'Industrial automation & power'}]},
+    'Consumer':{desc:'Consumer electronics, appliances, and coinage use copper and copper alloys.',pct:6,icon:'📱',consumers:[{name:'Apple',flag:'🇺🇸',role:'Electronics & devices'},{name:'Samsung',flag:'🇰🇷',role:'Consumer electronics'}]},
+  },
+  Graphite:{
+    'EV Battery Anodes':{desc:'Natural and synthetic graphite is the dominant anode material in lithium-ion batteries, hosting lithium ions during charge/discharge cycles.',pct:55,icon:'🔋',consumers:[{name:'CATL',flag:'🇨🇳',role:'Largest battery anode consumer'},{name:'BYD',flag:'🇨🇳',role:'Vertically integrated battery/EV maker'},{name:'Tesla',flag:'🇺🇸',role:'4680 cell anode requirements'},{name:'LG Energy Solution',flag:'🇰🇷',role:'Battery anode material buyer'},{name:'Panasonic',flag:'🇯🇵',role:'Cylindrical cell anode user'}]},
+    'Steelmaking':{desc:'Graphite electrodes are essential in electric arc furnace (EAF) steelmaking for melting scrap steel.',pct:20,icon:'🏗️',consumers:[{name:'ArcelorMittal',flag:'🇱🇺',role:'EAF steel production'},{name:'Nucor',flag:'🇺🇸',role:'EAF steelmaker'},{name:'Nippon Steel',flag:'🇯🇵',role:'Steel production'}]},
+    'Foundries':{desc:'Graphite crucibles and molds are used in metal casting and foundry operations.',pct:8,icon:'🏭',consumers:[{name:'Vesuvius',flag:'🇬🇧',role:'Foundry & steel flow control'}]},
+    'Lubricants':{desc:'Graphite\'s layered structure provides solid lubrication in high-temperature and vacuum environments.',pct:5,icon:'⚙️',consumers:[{name:'Timken',flag:'🇺🇸',role:'Bearings & industrial motion'}]},
+    'Brake Linings':{desc:'Graphite is used in automotive brake pads and friction materials for heat dissipation.',pct:5,icon:'🚗',consumers:[{name:'Brembo',flag:'🇮🇹',role:'High-performance brake systems'}]},
+  },
+  Manganese:{
+    'Steelmaking':{desc:'Manganese is essential for steel production — used in virtually all steel as a deoxidizer and alloying element. No substitute exists at scale.',pct:90,icon:'🏗️',consumers:[{name:'ArcelorMittal',flag:'🇱🇺',role:'World\'s largest steelmaker'},{name:'Baowu',flag:'🇨🇳',role:'China\'s largest steel group'},{name:'Nippon Steel',flag:'🇯🇵',role:'Major Japanese steel producer'},{name:'POSCO',flag:'🇰🇷',role:'Korean integrated steelmaker'}]},
+    'EV Batteries':{desc:'Manganese is used in NMC and LMFP battery cathodes, offering lower cost than cobalt and nickel alternatives.',pct:5,icon:'🔋',consumers:[{name:'CATL',flag:'🇨🇳',role:'LMFP battery development'},{name:'BYD',flag:'🇨🇳',role:'Manganese-rich cathode research'},{name:'Tesla',flag:'🇺🇸',role:'Exploring manganese-based chemistries'}]},
+    'Aluminum Alloys':{desc:'Manganese improves strength and corrosion resistance in aluminum alloys used in beverage cans and automotive panels.',pct:3,icon:'🥫',consumers:[{name:'Novelis',flag:'🇺🇸',role:'Aluminum rolling & recycling'},{name:'Alcoa',flag:'🇺🇸',role:'Aluminum production'}]},
+  },
+  Gallium:{
+    'Semiconductors (GaAs)':{desc:'Gallium arsenide chips are critical for 5G/6G communications, radar, and defense electronics due to superior high-frequency performance.',pct:70,icon:'💻',consumers:[{name:'TSMC',flag:'🇹🇼',role:'Compound semiconductor foundry'},{name:'Skyworks Solutions',flag:'🇺🇸',role:'5G RF semiconductor chips'},{name:'Broadcom',flag:'🇺🇸',role:'Wireless & networking chips'},{name:'Qorvo',flag:'🇺🇸',role:'RF solutions for mobile/defense'}]},
+    'LEDs/Optoelectronics':{desc:'Gallium nitride (GaN) enables energy-efficient LEDs, laser diodes, and power electronics.',pct:20,icon:'💡',consumers:[{name:'Samsung',flag:'🇰🇷',role:'LED display technology'},{name:'Nichia',flag:'🇯🇵',role:'World\'s largest LED manufacturer'},{name:'Osram',flag:'🇩🇪',role:'LED & optoelectronic components'}]},
+    'Solar (Space/Military)':{desc:'GaAs solar cells are the highest-efficiency cells, used in satellites and concentrated solar applications.',pct:5,icon:'🛰️',consumers:[{name:'Lockheed Martin',flag:'🇺🇸',role:'Satellite & space systems'},{name:'Boeing',flag:'🇺🇸',role:'Satellite solar arrays'},{name:'Airbus',flag:'🇫🇷',role:'Space systems'}]},
+    'Research':{desc:'Gallium compounds are used in emerging power electronics, quantum computing, and advanced R&D.',pct:5,icon:'🔬',consumers:[{name:'Intel',flag:'🇺🇸',role:'Next-gen transistor R&D'},{name:'IBM',flag:'🇺🇸',role:'Quantum computing research'}]},
+  },
+  Germanium:{
+    'Fiber Optics':{desc:'Germanium-doped optical fibers form the backbone of global telecommunications infrastructure.',pct:35,icon:'🌐',consumers:[{name:'Corning',flag:'🇺🇸',role:'Optical fiber manufacturing'},{name:'Prysmian',flag:'🇮🇹',role:'Fiber optic cable systems'},{name:'Furukawa Electric',flag:'🇯🇵',role:'Optical fiber & cable'}]},
+    'IR Optics/Night Vision':{desc:'Germanium lenses and windows are critical for thermal imaging, night vision goggles, and missile guidance systems.',pct:25,icon:'🔭',consumers:[{name:'Lockheed Martin',flag:'🇺🇸',role:'Defense IR systems & targeting'},{name:'RTX',flag:'🇺🇸',role:'Missile guidance & sensors'},{name:'L3Harris',flag:'🇺🇸',role:'Night vision & EO/IR systems'}]},
+    'Solar Cells':{desc:'Multi-junction germanium solar cells achieve highest efficiency for satellite and space applications.',pct:15,icon:'☀️',consumers:[{name:'Boeing',flag:'🇺🇸',role:'Satellite solar panels'},{name:'Airbus',flag:'🇫🇷',role:'Space solar arrays'}]},
+    'Catalysts':{desc:'Germanium catalysts are used in PET plastic production and chemical processes.',pct:10,icon:'⚗️',consumers:[{name:'Indorama Ventures',flag:'🇹🇭',role:'PET resin manufacturer'},{name:'BASF',flag:'🇩🇪',role:'Chemical catalysts'}]},
+  },
+  Tungsten:{
+    'Cutting Tools/Carbide':{desc:'Tungsten carbide is the hardest commonly used industrial material, essential for metal cutting, mining, and drilling tools.',pct:55,icon:'🔧',consumers:[{name:'Sandvik',flag:'🇸🇪',role:'Cemented carbide cutting tools'},{name:'Kennametal',flag:'🇺🇸',role:'Tungsten carbide tooling'},{name:'Iscar (Berkshire)',flag:'🇮🇱',role:'Precision cutting tools'}]},
+    'Mill Products':{desc:'Tungsten wire, rod, and sheet are used in lighting, electronics, and high-temperature applications.',pct:20,icon:'💡',consumers:[{name:'Plansee',flag:'🇦🇹',role:'Tungsten & molybdenum products'},{name:'OSRAM',flag:'🇩🇪',role:'Specialty lighting'}]},
+    'Steels/Alloys':{desc:'Tungsten alloys provide exceptional hardness and heat resistance for armor-piercing rounds and aerospace components.',pct:15,icon:'🛡️',consumers:[{name:'Lockheed Martin',flag:'🇺🇸',role:'Defense systems & munitions'},{name:'RTX',flag:'🇺🇸',role:'Aerospace & defense'},{name:'Boeing',flag:'🇺🇸',role:'Aerospace applications'}]},
+    'Chemicals':{desc:'Tungsten chemicals serve as catalysts and in specialized coatings.',pct:10,icon:'⚗️',consumers:[{name:'BASF',flag:'🇩🇪',role:'Catalyst production'},{name:'Johnson Matthey',flag:'🇬🇧',role:'Specialty chemicals'}]},
+  },
+  Vanadium:{
+    'Steel Alloys':{desc:'Vanadium microalloying dramatically improves steel strength-to-weight ratio for rebar, pipelines, and structural applications.',pct:90,icon:'🏗️',consumers:[{name:'ArcelorMittal',flag:'🇱🇺',role:'HSLA vanadium steel'},{name:'Baowu',flag:'🇨🇳',role:'Vanadium-microalloyed steel'},{name:'POSCO',flag:'🇰🇷',role:'High-strength structural steel'},{name:'Nippon Steel',flag:'🇯🇵',role:'Advanced steel alloys'}]},
+    'Flow Batteries (VRFB)':{desc:'Vanadium redox flow batteries provide long-duration grid-scale energy storage with virtually unlimited cycle life.',pct:5,icon:'⚡',consumers:[{name:'Largo Clean Energy',flag:'🇨🇦',role:'VRFB systems manufacturer'},{name:'Rongke Power',flag:'🇨🇳',role:'200MW VRFB project in Dalian'},{name:'Invinity Energy',flag:'🇬🇧',role:'Flow battery systems'}]},
+    'Titanium Alloys':{desc:'Vanadium-titanium alloys (Ti-6Al-4V) are the aerospace industry\'s most widely used titanium alloy.',pct:3,icon:'✈️',consumers:[{name:'Boeing',flag:'🇺🇸',role:'Aircraft structural components'},{name:'Airbus',flag:'🇫🇷',role:'Aerospace titanium parts'}]},
+    'Chemicals':{desc:'Vanadium pentoxide is used in catalysts for sulfuric acid production and chemical processes.',pct:2,icon:'⚗️',consumers:[{name:'BASF',flag:'🇩🇪',role:'Industrial catalysts'}]},
+  },
+  'Platinum Group':{
+    'Autocatalysts':{desc:'Platinum, palladium, and rhodium catalytic converters reduce harmful vehicle emissions. The largest PGM application.',pct:40,icon:'🚗',consumers:[{name:'Johnson Matthey',flag:'🇬🇧',role:'World leader in autocatalyst systems'},{name:'BASF',flag:'🇩🇪',role:'Emission control catalysts'},{name:'Umicore',flag:'🇧🇪',role:'Automotive catalyst recycling'}]},
+    'Jewelry':{desc:'Platinum\'s rarity and luster make it a premium jewelry metal.',pct:25,icon:'💍',consumers:[{name:'Richemont (Cartier)',flag:'🇨🇭',role:'Luxury platinum jewelry'},{name:'Tiffany & Co.',flag:'🇺🇸',role:'Platinum engagement rings'}]},
+    'Hydrogen/Fuel Cells':{desc:'Platinum is the key catalyst in PEM fuel cells for hydrogen vehicles and stationary power.',pct:15,icon:'💧',consumers:[{name:'Toyota',flag:'🇯🇵',role:'Mirai hydrogen fuel cell vehicle'},{name:'Plug Power',flag:'🇺🇸',role:'Hydrogen fuel cell systems'},{name:'Hyundai',flag:'🇰🇷',role:'NEXO fuel cell SUV'}]},
+    'Chemical Catalysts':{desc:'PGMs catalyze nitric acid, silicone, and petroleum refining processes.',pct:10,icon:'⚗️',consumers:[{name:'BASF',flag:'🇩🇪',role:'Process catalysts'},{name:'Johnson Matthey',flag:'🇬🇧',role:'Industrial catalysts'}]},
+    'Electronics':{desc:'Palladium and platinum are used in MLCC capacitors, hard disk drives, and circuit boards.',pct:5,icon:'💻',consumers:[{name:'Samsung',flag:'🇰🇷',role:'MLCC capacitor production'},{name:'Murata',flag:'🇯🇵',role:'Electronic components'}]},
+  },
+  Uranium:{
+    'Nuclear Power':{desc:'Enriched uranium fuel powers 440+ nuclear reactors worldwide, providing ~10% of global electricity — the largest source of clean baseload power.',pct:93,icon:'⚛️',consumers:[{name:'EDF',flag:'🇫🇷',role:'Operates 56 reactors in France'},{name:'Exelon (Constellation)',flag:'🇺🇸',role:'Largest US nuclear fleet'},{name:'KEPCO',flag:'🇰🇷',role:'Korean nuclear power operator'},{name:'China General Nuclear',flag:'🇨🇳',role:'Rapidly expanding Chinese fleet'}]},
+    'Medical Isotopes':{desc:'Reactor-produced isotopes (Mo-99/Tc-99m) are used in 40+ million diagnostic imaging procedures annually.',pct:3,icon:'🏥',consumers:[{name:'NRG (Petten)',flag:'🇳🇱',role:'Medical isotope reactor'},{name:'Nordion',flag:'🇨🇦',role:'Medical isotope supplier'}]},
+    'Defense/Naval':{desc:'Highly enriched uranium powers nuclear submarines and aircraft carriers for extended deployments.',pct:3,icon:'🛡️',consumers:[{name:'US Navy',flag:'🇺🇸',role:'Nuclear submarine & carrier fleet'},{name:'BAE Systems',flag:'🇬🇧',role:'Astute-class submarine builder'}]},
+    'Research':{desc:'Research reactors use uranium for neutron science, materials testing, and nuclear technology development.',pct:1,icon:'🔬',consumers:[{name:'IAEA',flag:'🇺🇳',role:'Coordinates nuclear research globally'},{name:'DOE National Labs',flag:'🇺🇸',role:'Nuclear science R&D'}]},
+  },
+  Silicon:{
+    'Aluminum Alloys':{desc:'Silicon is the primary alloying element in aluminum casting alloys, improving fluidity and strength for automotive and aerospace parts.',pct:45,icon:'🚗',consumers:[{name:'Novelis',flag:'🇺🇸',role:'Aluminum rolling for automotive'},{name:'Alcoa',flag:'🇺🇸',role:'Aluminum smelting & fabrication'},{name:'Rio Tinto Alcan',flag:'🇨🇦',role:'Primary aluminum producer'}]},
+    'Silicones/Chemicals':{desc:'Silicon-based silicones are used in sealants, lubricants, medical devices, and personal care products.',pct:30,icon:'⚗️',consumers:[{name:'Dow',flag:'🇺🇸',role:'Silicone manufacturer'},{name:'Wacker Chemie',flag:'🇩🇪',role:'Silicone & polysilicon'},{name:'Shin-Etsu',flag:'🇯🇵',role:'Silicone & semiconductor materials'}]},
+    'Solar Polysilicon':{desc:'Ultra-pure polysilicon is the feedstock for crystalline silicon solar cells, the dominant solar PV technology.',pct:15,icon:'☀️',consumers:[{name:'LONGi Green Energy',flag:'🇨🇳',role:'World\'s largest solar wafer/module maker'},{name:'JinkoSolar',flag:'🇨🇳',role:'Top solar module manufacturer'},{name:'First Solar',flag:'🇺🇸',role:'US solar panel manufacturer'}]},
+    'Semiconductors':{desc:'Electronic-grade silicon wafers are the substrate for virtually all integrated circuits and microchips.',pct:5,icon:'💻',consumers:[{name:'TSMC',flag:'🇹🇼',role:'World\'s largest chip foundry'},{name:'Samsung',flag:'🇰🇷',role:'Memory & logic chip fabrication'},{name:'Intel',flag:'🇺🇸',role:'Processor manufacturing'}]},
+  },
+};
+
+// V4.5: BILATERAL TRADE FLOW ESTIMATES (for mini Sankeys)
+const BILATERAL_FLOWS = {
+  Lithium:{Chile:{exports:{China:35,South_Korea:22,Japan:18,USA:15,EU:10}},Australia:{exports:{China:55,South_Korea:18,Japan:15,EU:8,USA:4}},China:{exports:{South_Korea:30,Japan:25,EU:20,USA:15,India:10},imports:{Australia:42,Chile:28,Argentina:15,Brazil:8,Other:7}},Argentina:{exports:{China:35,USA:25,South_Korea:15,Japan:15,EU:10}},USA:{imports:{Chile:55,Argentina:22,China:12,Australia:8,Other:3}}},
+  Cobalt:{DRC:{exports:{China:72,Finland:8,Belgium:6,South_Korea:5,Japan:4,Other:5}},China:{exports:{South_Korea:25,Japan:20,EU:18,USA:12,India:10},imports:{DRC:78,Indonesia:8,Philippines:5,Australia:4,Other:5}},Indonesia:{exports:{China:65,Japan:15,South_Korea:12,EU:5,Other:3}},Finland:{imports:{DRC:45,Russia:20,Philippines:15,Australia:10,Other:10}},Belgium:{imports:{DRC:55,Finland:15,Canada:12,China:10,Other:8}}},
+  Nickel:{Indonesia:{exports:{China:60,Japan:12,South_Korea:10,EU:8,India:6,Other:4}},China:{exports:{South_Korea:20,Japan:15,EU:20,USA:12,India:15},imports:{Indonesia:55,Philippines:15,Russia:10,Australia:8,Other:12}},Philippines:{exports:{China:50,Japan:25,South_Korea:12,Australia:5,Other:8}},Russia:{exports:{China:40,EU:25,Japan:12,South_Korea:8,Other:15}},Australia:{exports:{China:35,Japan:25,South_Korea:15,EU:15,USA:10}}},
+  'Rare Earths':{China:{exports:{Japan:30,USA:18,EU:15,South_Korea:12,India:8,Other:17}},Myanmar:{exports:{China:95,Other:5}},Australia:{exports:{Japan:35,EU:25,China:15,USA:15,South_Korea:10}},USA:{exports:{Japan:40,EU:25,Canada:20,South_Korea:10,Other:5},imports:{China:72,Estonia:8,Japan:7,Malaysia:6,Australia:4,Other:3}}},
+  Copper:{Chile:{exports:{China:45,Japan:12,South_Korea:10,USA:10,EU:12,India:6,Other:5}},DRC:{exports:{China:70,EU:10,South_Korea:5,Japan:5,India:5,Other:5}},Peru:{exports:{China:60,USA:10,Japan:8,South_Korea:7,EU:8,Other:7}},China:{imports:{Chile:30,Peru:18,DRC:16,Australia:8,Indonesia:8,Other:20}},Australia:{exports:{China:55,Japan:18,South_Korea:10,India:8,EU:5,Other:4}}},
+  Graphite:{China:{exports:{Japan:22,South_Korea:18,EU:15,USA:12,India:10,Other:23}},Mozambique:{exports:{China:50,EU:20,India:12,Japan:8,USA:5,Other:5}},Brazil:{exports:{EU:30,USA:20,Japan:15,China:15,Other:20}},Madagascar:{exports:{EU:30,USA:25,China:20,Japan:15,Other:10}}},
+  Gallium:{China:{exports:{Japan:28,EU:22,USA:18,South_Korea:15,Taiwan:12,Other:5}}},
+  Germanium:{China:{exports:{USA:25,Japan:22,EU:20,South_Korea:12,Taiwan:10,Other:11}},Belgium:{exports:{USA:30,EU:25,Japan:20,South_Korea:15,Other:10}},Canada:{exports:{USA:45,EU:25,Japan:15,South_Korea:10,Other:5}}},
+  Tungsten:{China:{exports:{EU:28,Japan:20,South_Korea:15,USA:12,India:10,Other:15}},Vietnam:{exports:{Japan:30,EU:25,South_Korea:15,USA:12,China:10,Other:8}},Bolivia:{exports:{USA:35,EU:25,Brazil:15,Japan:10,Other:15}}},
+};
+
 // Mineral color map
 const MINERAL_COLORS = {
   Lithium:'#3b82f6',Cobalt:'#8b5cf6',Nickel:'#06b6d4','Rare Earths':'#ec4899',
@@ -1907,6 +2036,17 @@ function openCountryModal(country, mineral){
     <div class="cm-companies">${companiesInCountry.map(c=>`<span class="cm-company-tag" onclick="event.stopPropagation();closeCountryModal();openCompanyPanel('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('')}</div>`;
   }
 
+  // V4.5: Determine if we have bilateral flow data for mini Sankey
+  const hasBilateralData=BILATERAL_FLOWS[mineral]&&BILATERAL_FLOWS[mineral][country];
+  const bilateralData=hasBilateralData?BILATERAL_FLOWS[mineral][country]:null;
+  const hasExports=bilateralData&&bilateralData.exports;
+  const hasImports=bilateralData&&bilateralData.imports;
+
+  if(hasExports||hasImports){
+    html+=`<div class="cm-section-title">${hasExports?'Export':'Import'} Flow — ${mineral}</div>
+    <div class="mini-sankey-wrap" id="miniSankeyContainer"></div>`;
+  }
+
   html += `
     <div class="cm-section-title">Historical Trade Volume (5 Years)</div>
     <div class="cm-chart-wrap"><canvas id="countryTradeChart"></canvas></div>
@@ -1917,6 +2057,13 @@ function openCountryModal(country, mineral){
   document.getElementById('cm-body').innerHTML = html;
   backdrop.classList.add('open');
   document.body.style.overflow='hidden';
+
+  // V4.5: Render mini Sankey if data available
+  if(hasExports||hasImports){
+    setTimeout(()=>{
+      renderMiniSankey('miniSankeyContainer',country,mineral,hasExports?'export':'import');
+    },50);
+  }
 
   setTimeout(()=>{
     if(countryModalChart){try{countryModalChart.destroy()}catch(e){}}
@@ -2315,27 +2462,222 @@ function showMineral(name){
     borderWidth:1,titleFont:{family:'Geist',weight:'600'},bodyFont:{family:'Geist Mono'},padding:10,cornerRadius:8,
   };
 
+  // V4.5: Add clickable class to canvases
+  document.getElementById('miningChart').classList.add('clickable-chart');
+  document.getElementById('refiningChart').classList.add('clickable-chart');
+  document.getElementById('usesChart').classList.add('clickable-chart');
+
+  // V4.5: Bar chart hover + click options
+  const barHoverPlugin = {id:'barHover',beforeEvent(chart,args){const evt=args.event;if(evt.type==='click'){const els=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);if(els.length){const idx=els[0].index;const country=chart.data.labels[idx];const chartType=chart.canvas.id.includes('mining')?'Mining':'Refining';if(country&&country!=='Other')openCountryMiningPanel(country,name,chartType,chart.data.datasets[0].data[idx])}}}};
+
   charts.mining=new Chart(document.getElementById('miningChart').getContext('2d'),{type:'bar',data:{
-    labels:d.mining.map(x=>x[0]),datasets:[{data:d.mining.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.mining.length),borderRadius:4,barThickness:18}]
-  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — Mining`,label:c=>`${c.label}: ${c.raw}% of global production`}}},scales:{
+    labels:d.mining.map(x=>x[0]),datasets:[{data:d.mining.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.mining.length),borderRadius:4,barThickness:18,hoverBackgroundColor:COLORS.slice(0,d.mining.length).map(c=>c+'cc')}]
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onHover:(evt,els,chart)=>{chart.canvas.style.cursor=els.length?'pointer':'default'},plugins:{legend:{display:false},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — Mining`,label:c=>`${c.label}: ${c.raw}% of global production\nClick for details`}}},scales:{
     x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
-  }}});
+  }},plugins:[barHoverPlugin]});
 
   charts.refining=new Chart(document.getElementById('refiningChart').getContext('2d'),{type:'bar',data:{
-    labels:d.refining.map(x=>x[0]),datasets:[{data:d.refining.map(x=>x[1]),backgroundColor:d.refining.map(x=>x[0]==='China'?'#ef4444':COLORS[1]),borderRadius:4,barThickness:18}]
-  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — Refining`,label:c=>`${c.label}: ${c.raw}% of global processing`}}},scales:{
+    labels:d.refining.map(x=>x[0]),datasets:[{data:d.refining.map(x=>x[1]),backgroundColor:d.refining.map(x=>x[0]==='China'?'#ef4444':COLORS[1]),borderRadius:4,barThickness:18,hoverBackgroundColor:d.refining.map(x=>x[0]==='China'?'#ef4444cc':COLORS[1]+'cc')}]
+  },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onHover:(evt,els,chart)=>{chart.canvas.style.cursor=els.length?'pointer':'default'},plugins:{legend:{display:false},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — Refining`,label:c=>`${c.label}: ${c.raw}% of global processing\nClick for details`}}},scales:{
     x:{grid:{color:cc.grid},ticks:{color:cc.tick,callback:v=>v+'%'},max:100},y:{grid:{display:false},ticks:{color:cc.label,font:{size:12,family:'Geist'}}}
-  }}});
+  }},plugins:[barHoverPlugin]});
+
+  // V4.5: Donut chart with click handler
+  const donutClickPlugin = {id:'donutClick',beforeEvent(chart,args){const evt=args.event;if(evt.type==='click'){const els=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},false);if(els.length){const idx=els[0].index;const useName=chart.data.labels[idx];openIndustryPanel(useName,name)}}}};
 
   charts.uses=new Chart(document.getElementById('usesChart').getContext('2d'),{type:'doughnut',data:{
-    labels:d.uses.map(x=>x[0]),datasets:[{data:d.uses.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.uses.length),borderWidth:0,hoverOffset:6}]
-  },options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{color:cc.legendText,font:{size:11,family:'Geist'},padding:8,usePointStyle:true,pointStyleWidth:8}},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — End Uses`,label:c=>`${c.label}: ${c.raw}%`}}}}});
+    labels:d.uses.map(x=>x[0]),datasets:[{data:d.uses.map(x=>x[1]),backgroundColor:COLORS.slice(0,d.uses.length),borderWidth:0,hoverOffset:8,hoverBorderWidth:2,hoverBorderColor:getTheme()==='dark'?'#fafafa':'#09090b'}]
+  },options:{responsive:true,maintainAspectRatio:false,cutout:'60%',onHover:(evt,els,chart)=>{chart.canvas.style.cursor=els.length?'pointer':'default'},plugins:{legend:{position:'right',labels:{color:cc.legendText,font:{size:11,family:'Geist'},padding:8,usePointStyle:true,pointStyleWidth:8}},tooltip:{...ttOpts,callbacks:{title:c=>`${name} — End Uses`,label:c=>`${c.label}: ${c.raw}%\nClick for industry details`}}}},plugins:[donutClickPlugin]});
 
   document.getElementById('company-list').innerHTML=d.companies.map(([n,c])=>{
     const hasData = COMPANY_DB[n];
     if(hasData) return `<div class="company-tag" onclick="openCompanyPanel('${n.replace(/'/g,"\\'")}')">${n}<span class="co-country">${c}</span></div>`;
     return `<div class="company-tag">${n}<span class="co-country">${c}</span></div>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// V4.5: COUNTRY MINING PANEL (from bar chart click)
+// ══════════════════════════════════════════════════════════════
+function openCountryMiningPanel(country, mineral, chartType, pct){
+  const panel=document.getElementById('side-panel');
+  const backdrop=document.getElementById('sp-backdrop');
+  const flag=COUNTRY_FLAGS[country]||'🌐';
+  const mineralData=MINERALS[mineral];
+
+  document.getElementById('sp-title').innerHTML=`${flag} ${chartType} in ${country} — ${mineral}`;
+
+  // Find companies operating in this country for this mineral
+  const countryCodeMap={'US':'USA','CN':'China','AU':'Australia','BR':'Brazil','CA':'Canada','CH':'Switzerland','RU':'Russia','DE':'Germany','JP':'Japan','SE':'Sweden','AT':'Austria','FR':'France','BE':'Belgium','SA':'South Africa','NO':'Norway','KZ':'Kazakhstan','MX':'Mexico','India':'India','Chile':'Chile','KR':'South Korea'};
+  const companiesInCountry=[];
+  if(mineralData){
+    mineralData.companies.forEach(([name,code])=>{
+      const fullName=countryCodeMap[code]||code;
+      if(fullName===country||code===country) companiesInCountry.push(name);
+    });
+  }
+  // Also search COMPANY_DB for more matches
+  Object.entries(COMPANY_DB).forEach(([coName,co])=>{
+    const coCountryFull=countryCodeMap[co.country]||co.country;
+    if((coCountryFull===country||co.country===country)&&co.minerals.includes(mineral)&&!companiesInCountry.includes(coName)){
+      companiesInCountry.push(coName);
+    }
+  });
+
+  // Get export destinations
+  const bfMineral=BILATERAL_FLOWS[mineral];
+  const countryKey=country.replace(/\s/g,'_');
+  let exportDests=null;
+  if(bfMineral){
+    const cData=bfMineral[country]||bfMineral[countryKey];
+    if(cData&&cData.exports) exportDests=cData.exports;
+  }
+
+  let html=`
+    <div class="sp-row"><span class="sp-row-label">Global Share (${chartType})</span><span class="sp-row-val" style="color:var(--accent);font-size:1.125rem">${pct}%</span></div>
+    <div class="sp-row"><span class="sp-row-label">Mineral</span><span class="sp-row-val"><span class="sp-mineral-tag" style="background:${MINERAL_COLORS[mineral]||'#3b82f6'}">${mineral}</span></span></div>
+  `;
+
+  const profile=COUNTRY_PROFILES[country];
+  if(profile) html+=`<div class="sp-desc">${profile.overview}</div>`;
+
+  if(companiesInCountry.length>0){
+    html+=`<div class="sp-section-title">Key Companies — ${mineral} in ${country}</div>`;
+    companiesInCountry.forEach(coName=>{
+      const co=COMPANY_DB[coName];
+      if(co){
+        html+=`<div class="sp-consumer-card" onclick="closeCompanyPanel();setTimeout(()=>openCompanyPanel('${coName.replace(/'/g,"\\'")}'),100)">
+          <span class="consumer-flag">${co.flag}</span>
+          <div class="consumer-info"><div class="consumer-name">${coName}</div><div class="consumer-role">${co.role} · ${co.mcap}</div></div>
+        </div>`;
+      } else {
+        html+=`<div class="sp-consumer-card"><span class="consumer-flag">${flag}</span><div class="consumer-info"><div class="consumer-name">${coName}</div></div></div>`;
+      }
+    });
+  }
+
+  if(exportDests){
+    html+=`<div class="sp-section-title">Export Destinations</div>`;
+    const entries=Object.entries(exportDests).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxPct=Math.max(...entries.map(e=>e[1]));
+    entries.forEach(([dest,destPct])=>{
+      const destName=dest.replace(/_/g,' ');
+      const destFlag=COUNTRY_FLAGS[destName]||'🌐';
+      html+=`<div class="export-dest-row">
+        <span class="export-dest-label">${destFlag} ${destName}</span>
+        <div class="export-dest-track"><div class="export-dest-fill" style="width:${destPct/maxPct*100}%;background:${MINERAL_COLORS[mineral]||'var(--accent)'}"></div></div>
+        <span class="export-dest-pct">${destPct}%</span>
+      </div>`;
+    });
+  }
+
+  document.getElementById('sp-body').innerHTML=html;
+  backdrop.classList.add('open');
+  panel.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+// ══════════════════════════════════════════════════════════════
+// V4.5: INDUSTRY / END-USE PANEL (from donut chart click)
+// ══════════════════════════════════════════════════════════════
+function openIndustryPanel(useName, mineral){
+  const panel=document.getElementById('side-panel');
+  const backdrop=document.getElementById('sp-backdrop');
+
+  const mineralEndUses=END_USE_DATA[mineral];
+  const data=mineralEndUses?mineralEndUses[useName]:null;
+
+  document.getElementById('sp-title').innerHTML=`${data?data.icon:'📊'} ${useName}`;
+
+  let html='';
+
+  if(data){
+    html+=`
+      <div class="sp-row"><span class="sp-row-label">Mineral</span><span class="sp-row-val"><span class="sp-mineral-tag" style="background:${MINERAL_COLORS[mineral]||'#3b82f6'}">${mineral}</span></span></div>
+      <div class="sp-row"><span class="sp-row-label">Share of ${mineral} Demand</span><span class="sp-row-val" style="color:var(--accent);font-size:1.125rem">${data.pct}%</span></div>
+      <div style="margin-top:.5rem"><div class="sp-market-bar" style="flex:1"><div class="sp-market-bar-fill" style="width:${data.pct}%;background:${MINERAL_COLORS[mineral]||'var(--accent)'}"></div></div></div>
+      <div class="sp-desc">${data.desc}</div>
+    `;
+
+    if(data.consumers&&data.consumers.length){
+      html+=`<div class="sp-section-title">Key Industry Consumers</div>`;
+      data.consumers.forEach(c=>{
+        const inDB=COMPANY_DB[c.name];
+        const clickAttr=inDB?`onclick="closeCompanyPanel();setTimeout(()=>openCompanyPanel('${c.name.replace(/'/g,"\\'")}'),100)"`:''
+        html+=`<div class="sp-consumer-card" ${clickAttr} style="${inDB?'':'cursor:default'}">
+          <span class="consumer-flag">${c.flag}</span>
+          <div class="consumer-info"><div class="consumer-name">${c.name}${inDB?' →':''}</div><div class="consumer-role">${c.role}</div></div>
+        </div>`;
+      });
+    }
+  } else {
+    html+=`
+      <div class="sp-row"><span class="sp-row-label">Mineral</span><span class="sp-row-val">${mineral}</span></div>
+      <div class="sp-desc">Detailed industry data for "${useName}" in ${mineral} applications.</div>
+    `;
+  }
+
+  document.getElementById('sp-body').innerHTML=html;
+  backdrop.classList.add('open');
+  panel.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+// ══════════════════════════════════════════════════════════════
+// V4.5: MINI SANKEY FOR COUNTRY MODAL
+// ══════════════════════════════════════════════════════════════
+function renderMiniSankey(containerId, country, mineral, direction){
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  const dark=getTheme()==='dark';
+  const bfMineral=BILATERAL_FLOWS[mineral];
+  if(!bfMineral) return;
+
+  const cData=bfMineral[country];
+  if(!cData) return;
+
+  let flowData=null;
+  if(direction==='export'&&cData.exports) flowData=cData.exports;
+  else if(direction==='import'&&cData.imports) flowData=cData.imports;
+  else if(cData.exports) flowData=cData.exports;
+  if(!flowData) return;
+
+  const entries=Object.entries(flowData).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!entries.length) return;
+
+  const w=380,h=220;
+  const nodeMap={};let nodeId=0;
+  function getNode(n){if(!(n in nodeMap))nodeMap[n]=nodeId++;return nodeMap[n]}
+
+  const links=[];
+  const isExport=direction==='export'||(!direction&&cData.exports);
+
+  entries.forEach(([dest,pct])=>{
+    const destName=dest.replace(/_/g,' ');
+    if(isExport){
+      links.push({source:getNode(country),target:getNode(destName),value:pct});
+    } else {
+      links.push({source:getNode(destName),target:getNode(country),value:pct});
+    }
+  });
+
+  const nodes=Object.entries(nodeMap).map(([name,id])=>({name,id})).sort((a,b)=>a.id-b.id);
+
+  const svg=d3.select(container).append('svg').attr('width',w).attr('height',h).attr('viewBox',`0 0 ${w} ${h}`);
+
+  const sankey=d3.sankey().nodeId(d=>d.id).nodeWidth(12).nodePadding(12).nodeAlign(d3.sankeyLeft).extent([[1,1],[w-1,h-6]]);
+
+  const graph=sankey({nodes:nodes.map(d=>({...d})),links:links.map(d=>({...d}))});
+  const mineralColor=MINERAL_COLORS[mineral]||'#3b82f6';
+
+  svg.append('g').attr('fill','none').selectAll('path').data(graph.links).join('path')
+    .attr('d',d3.sankeyLinkHorizontal())
+    .attr('stroke',mineralColor).attr('stroke-opacity',.4)
+    .attr('stroke-width',d=>Math.max(2,d.width));
+
+  const node=svg.append('g').selectAll('g').data(graph.nodes).join('g');
+  node.append('rect').attr('x',d=>d.x0).attr('y',d=>d.y0).attr('height',d=>Math.max(2,d.y1-d.y0)).attr('width',sankey.nodeWidth()).attr('fill',mineralColor).attr('rx',2).attr('opacity',.85);
+  node.append('text').attr('x',d=>d.x0<w/2?d.x1+6:d.x0-6).attr('y',d=>(d.y1+d.y0)/2).attr('dy','0.35em').attr('text-anchor',d=>d.x0<w/2?'start':'end').text(d=>{const flag=COUNTRY_FLAGS[d.name]||'';return flag+' '+d.name}).attr('fill',dark?'#fafafa':'#09090b').attr('font-size','10px').attr('font-family','Geist, sans-serif');
 }
 
 // ── TRADE FLOWS RENDERING ──
