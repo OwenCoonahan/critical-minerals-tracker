@@ -691,6 +691,256 @@ body{
   .pricing-grid{grid-template-columns:1fr}
   .ce-grid{grid-template-columns:1fr}
 }
+
+/* ── V4: Live/Cached Badges ── */
+.data-badge{
+  display:inline-flex;align-items:center;gap:.25rem;
+  font-size:.625rem;font-family:var(--font-mono);font-weight:600;
+  padding:.15rem .4rem;border-radius:999px;letter-spacing:.02em;text-transform:uppercase;
+}
+.data-badge.live{background:var(--green-muted);color:var(--green)}
+.data-badge.cached{background:var(--orange-muted);color:var(--orange)}
+.data-badge.loading{background:var(--surface-hover);color:var(--text-muted)}
+.refresh-btn{
+  width:28px;height:28px;border-radius:var(--radius);border:1px solid var(--border);
+  background:transparent;color:var(--text-secondary);cursor:pointer;display:inline-flex;
+  align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.refresh-btn:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--text)}
+.refresh-btn.spinning svg{animation:spin .8s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.last-fetched{font-size:.625rem;color:var(--text-muted);font-family:var(--font-mono)}
+
+/* ── V4: Watchlist Star ── */
+.watch-btn{
+  width:28px;height:28px;border-radius:var(--radius);border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;
+  align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;font-size:.875rem;
+}
+.watch-btn:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--orange)}
+.watch-btn.watched{color:var(--orange);border-color:var(--orange);background:var(--orange-muted)}
+.mc-top-row{display:flex;align-items:center;gap:.5rem}
+
+/* ── V4: Alerts Tab ── */
+#alerts-view{display:none}
+#alerts-view.active{display:block}
+.alerts-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:768px){.alerts-grid{grid-template-columns:1fr}}
+.watchlist-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1rem;display:flex;justify-content:space-between;align-items:center;transition:all .15s;cursor:pointer;
+}
+.watchlist-card:hover{border-color:var(--border-hover);background:var(--surface-hover)}
+.wl-left{display:flex;align-items:center;gap:.75rem}
+.wl-icon{font-size:1.25rem}
+.wl-name{font-size:.875rem;font-weight:600}
+.wl-meta{font-size:.75rem;color:var(--text-muted);margin-top:.125rem}
+.wl-right{display:flex;align-items:center;gap:.5rem}
+.wl-remove{
+  width:24px;height:24px;border-radius:var(--radius);border:1px solid var(--border);
+  background:transparent;color:var(--text-muted);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-size:.75rem;transition:all .15s;
+}
+.wl-remove:hover{background:var(--red-muted);color:var(--red);border-color:var(--red)}
+.threshold-input{
+  width:52px;padding:.2rem .375rem;border-radius:var(--radius);border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-family:var(--font-mono);font-size:.75rem;
+  text-align:center;
+}
+.threshold-input:focus{outline:none;border-color:var(--accent)}
+.news-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1rem;transition:all .15s;
+}
+.news-card:hover{border-color:var(--border-hover);background:var(--surface-hover)}
+.news-headline{font-size:.875rem;font-weight:600;margin-bottom:.375rem;line-height:1.4}
+.news-meta{display:flex;align-items:center;gap:.5rem;font-size:.6875rem;color:var(--text-muted);margin-bottom:.375rem}
+.news-source{font-family:var(--font-mono);font-weight:500}
+.news-summary{font-size:.8125rem;color:var(--text-secondary);line-height:1.5}
+.news-tag{
+  display:inline-block;padding:.125rem .375rem;border-radius:999px;font-size:.625rem;
+  font-weight:600;color:#fff;margin-top:.5rem;
+}
+.alert-banner{
+  background:var(--orange-muted);border:1px solid var(--orange);border-radius:var(--radius-lg);
+  padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem;
+  font-size:.8125rem;color:var(--orange);
+}
+.alert-banner-close{
+  margin-left:auto;cursor:pointer;background:none;border:none;color:var(--orange);font-size:1rem;
+}
+.empty-watchlist{
+  text-align:center;padding:3rem;color:var(--text-muted);font-size:.875rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+}
+
+/* ── V4: API Preview ── */
+#api-view{display:none}
+#api-view.active{display:block}
+.api-hero{text-align:center;padding:3rem 2rem 2rem;max-width:700px;margin:0 auto}
+.api-hero h2{font-size:1.5rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.5rem}
+.api-hero p{color:var(--text-secondary);font-size:.875rem;line-height:1.6}
+.api-endpoints{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  overflow:hidden;margin-bottom:.75rem;
+}
+.api-endpoint{
+  padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;
+}
+.api-endpoint:last-child{border-bottom:none}
+.api-method{
+  font-family:var(--font-mono);font-size:.6875rem;font-weight:700;
+  padding:.2rem .4rem;border-radius:4px;background:var(--green-muted);color:var(--green);min-width:36px;text-align:center;
+}
+.api-path{font-family:var(--font-mono);font-size:.8125rem;font-weight:500;color:var(--text)}
+.api-desc{font-size:.75rem;color:var(--text-muted);margin-left:auto}
+.api-code-block{
+  background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1.25rem;overflow-x:auto;margin-bottom:.75rem;
+}
+.api-code-block pre{
+  font-family:var(--font-mono);font-size:.75rem;color:var(--text-secondary);line-height:1.7;margin:0;
+  white-space:pre;
+}
+.api-code-block .code-title{
+  font-size:.6875rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:.75rem;font-family:var(--font-sans);
+}
+.api-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.5rem 0}
+@media(max-width:768px){.api-tiers{grid-template-columns:1fr}}
+.api-tier{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1.5rem;text-align:center;transition:all .15s;
+}
+.api-tier:hover{border-color:var(--border-hover)}
+.api-tier.featured{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.api-tier-name{font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem}
+.api-tier-price{font-family:var(--font-mono);font-size:2rem;font-weight:700;letter-spacing:-.03em;margin-bottom:.25rem}
+.api-tier-price span{font-size:.875rem;font-weight:400;color:var(--text-muted)}
+.api-tier-detail{font-size:.8125rem;color:var(--text-secondary);margin-bottom:1rem}
+.api-tier ul{list-style:none;text-align:left;font-size:.8125rem;color:var(--text-secondary)}
+.api-tier li{padding:.25rem 0;display:flex;align-items:center;gap:.375rem}
+.api-tier li::before{content:'✓';color:var(--green);font-weight:700;font-size:.75rem}
+.api-cta{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.5rem;border-radius:var(--radius);
+  background:var(--text);color:var(--bg);font-size:.875rem;font-weight:600;
+  text-decoration:none;transition:all .15s;border:none;cursor:pointer;font-family:var(--font-sans);
+  margin-top:1rem;
+}
+.api-cta:hover{opacity:.9}
+
+/* ── V4: Search / Command Palette ── */
+.search-overlay{
+  position:fixed;inset:0;background:var(--backdrop);z-index:2000;
+  display:flex;align-items:flex-start;justify-content:center;padding-top:20vh;
+  opacity:0;pointer-events:none;transition:opacity .15s;
+}
+.search-overlay.open{opacity:1;pointer-events:auto}
+.search-dialog{
+  width:560px;max-width:92vw;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);box-shadow:0 16px 64px rgba(0,0,0,.3);
+  transform:scale(.96);transition:transform .15s;overflow:hidden;
+}
+.search-overlay.open .search-dialog{transform:scale(1)}
+.search-input-wrap{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.search-input-icon{color:var(--text-muted);flex-shrink:0}
+.search-input{
+  flex:1;border:none;background:transparent;color:var(--text);font-size:.9375rem;
+  font-family:var(--font-sans);outline:none;
+}
+.search-input::placeholder{color:var(--text-muted)}
+.search-kbd{
+  font-family:var(--font-mono);font-size:.625rem;color:var(--text-muted);
+  padding:.15rem .375rem;border:1px solid var(--border);border-radius:4px;background:var(--bg-elevated);
+}
+.search-results{max-height:360px;overflow-y:auto;padding:.5rem}
+.search-group-title{
+  font-size:.6875rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.04em;padding:.375rem .75rem;
+}
+.search-result{
+  padding:.5rem .75rem;border-radius:var(--radius);cursor:pointer;display:flex;
+  align-items:center;gap:.75rem;transition:background .1s;font-size:.8125rem;
+}
+.search-result:hover,.search-result.active{background:var(--surface-hover)}
+.search-result-icon{color:var(--text-muted);font-size:1rem;width:20px;text-align:center}
+.search-result-name{font-weight:500;color:var(--text)}
+.search-result-sub{font-size:.6875rem;color:var(--text-muted);margin-left:auto}
+.search-empty{text-align:center;padding:2rem;color:var(--text-muted);font-size:.8125rem}
+.search-footer{
+  border-top:1px solid var(--border);padding:.5rem 1rem;
+  display:flex;gap:1rem;font-size:.6875rem;color:var(--text-muted);
+}
+.search-footer span{display:flex;align-items:center;gap:.25rem}
+.search-footer kbd{
+  font-family:var(--font-mono);font-size:.5625rem;padding:.1rem .25rem;
+  border:1px solid var(--border);border-radius:3px;background:var(--bg-elevated);
+}
+
+/* ── V4: Report Modal ── */
+.report-modal-backdrop{
+  position:fixed;inset:0;background:var(--backdrop);z-index:1500;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.report-modal-backdrop.open{opacity:1;pointer-events:auto}
+.report-modal{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  width:480px;max-width:92vw;padding:1.5rem;transform:scale(.95);opacity:0;
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+}
+.report-modal-backdrop.open .report-modal{transform:scale(1);opacity:1}
+.report-modal h3{font-size:1rem;font-weight:600;margin-bottom:1rem}
+.report-option{
+  display:flex;align-items:center;gap:.75rem;padding:.5rem 0;font-size:.8125rem;
+}
+.report-option input[type="checkbox"]{accent-color:var(--accent);width:16px;height:16px}
+.report-option label{cursor:pointer;color:var(--text)}
+.report-actions{display:flex;gap:.5rem;margin-top:1.25rem;justify-content:flex-end}
+.report-btn{
+  padding:.5rem 1rem;border-radius:var(--radius);font-size:.8125rem;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);
+  font-family:var(--font-sans);transition:all .15s;
+}
+.report-btn:hover{background:var(--surface-hover);border-color:var(--border-hover)}
+.report-btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.report-btn.primary:hover{opacity:.9}
+
+/* ── V4: Header Buttons ── */
+.header-btn{
+  width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border);
+  background:transparent;color:var(--text-secondary);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.header-btn:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--text)}
+.header-btn svg{width:16px;height:16px}
+
+/* ── V4: Copy Data Button ── */
+.copy-btn{
+  padding:.25rem .5rem;border-radius:var(--radius);font-size:.6875rem;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);
+  font-family:var(--font-mono);transition:all .15s;
+}
+.copy-btn:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--text)}
+.copy-btn.copied{background:var(--green-muted);color:var(--green);border-color:var(--green)}
+
+/* ── V4: Print Styles ── */
+@media print{
+  .header,.pills-wrap,.footer,.side-panel-backdrop,.side-panel,.country-modal-backdrop,
+  .search-overlay,.report-modal-backdrop,.alert-banner,.watch-btn,.copy-btn,.refresh-btn,
+  .header-btn,.theme-toggle,.back-btn,.ce-controls,.mm-controls,.trade-controls,
+  .sankey-filter-wrap,.ce-filters,.mm-legend{display:none!important}
+  body{background:#fff!important;color:#000!important}
+  .container{max-width:100%;padding:1rem}
+  .mineral-card,.stat-card,.pricing-card,.news-card,.watchlist-card,.chart-box,.data-table-wrap,
+  .us-import-card,.flow-table-wrap,.api-endpoints,.api-code-block,.api-tier{
+    break-inside:avoid;border-color:#ddd!important;background:#fff!important;
+  }
+  .overview-grid,.pricing-grid,.charts-grid,.trade-tables-grid,.alerts-grid,.api-tiers{
+    grid-template-columns:1fr 1fr;
+  }
+  [data-theme="dark"]{--text:#000;--text-secondary:#333;--text-muted:#666;--border:#ddd;--surface:#fff;--bg:#fff}
+}
 </style>
 </head>
 <body>
@@ -702,6 +952,12 @@ body{
   </div>
   <div class="header-right">
     <span class="last-updated">Updated Feb 2026</span>
+    <button class="header-btn" onclick="openSearch()" aria-label="Search" title="Search (⌘K)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+    </button>
+    <button class="header-btn" onclick="openReportModal()" aria-label="Download Report" title="Download Report">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+    </button>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" id="themeBtn">
       <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
       <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
@@ -797,6 +1053,110 @@ body{
     <div class="mm-legend" id="mm-legend"></div>
   </div>
 
+  <!-- V4: Alert Banner -->
+  <div class="alert-banner" id="alert-banner" style="display:none">
+    <span>⚠️</span>
+    <span id="alert-banner-text"></span>
+    <button class="alert-banner-close" onclick="document.getElementById('alert-banner').style.display='none'">✕</button>
+  </div>
+
+  <div id="alerts-view">
+    <div class="section-header">
+      <h2>Alerts & Watchlist</h2>
+      <span class="section-attribution">Personalized tracking · Stored locally</span>
+    </div>
+    <div id="watchlist-section"></div>
+    <div style="margin-top:1.5rem">
+      <div class="section-header">
+        <h2>Critical Minerals News</h2>
+        <span class="section-attribution">Recent developments · Updated Feb 2026</span>
+      </div>
+      <div id="news-feed" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:.75rem"></div>
+    </div>
+  </div>
+
+  <div id="api-view">
+    <div class="api-hero">
+      <h2>Critical Minerals API</h2>
+      <p>Programmatic access to supply chain data, pricing, trade flows, and company intelligence. Built for analysts, developers, and procurement teams.</p>
+    </div>
+    <div style="max-width:800px;margin:0 auto">
+      <div class="api-endpoints">
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/minerals</span><span class="api-desc">List all 14 tracked minerals with risk scores</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/minerals/{id}/trade</span><span class="api-desc">Trade flows, importers, exporters by mineral</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/pricing/{mineral}</span><span class="api-desc">Historical & current commodity pricing</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/companies</span><span class="api-desc">50+ companies with supply chain data</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/companies/{id}</span><span class="api-desc">Company detail: facilities, customers, market share</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/mines</span><span class="api-desc">Global mine & facility locations with capacity</span></div>
+        <div class="api-endpoint"><span class="api-method">GET</span><span class="api-path">/v1/countries/{iso}/profile</span><span class="api-desc">Country mineral profile & trade partners</span></div>
+      </div>
+      <div class="api-code-block">
+        <div class="code-title">Example Response — GET /v1/minerals/lithium</div>
+        <pre>{
+  "id": "lithium",
+  "name": "Lithium",
+  "risk_level": "low",
+  "import_reliance": 0.25,
+  "china_refining_share": 0.65,
+  "top_processor": "China",
+  "current_price": {
+    "value": 10800,
+    "unit": "USD/tonne",
+    "source": "World Bank",
+    "updated_at": "2026-02-14T00:00:00Z"
+  },
+  "mining": [
+    { "country": "Australia", "share": 0.47 },
+    { "country": "Chile", "share": 0.25 },
+    { "country": "China", "share": 0.15 }
+  ],
+  "companies": ["Albemarle", "SQM", "Pilbara Minerals"],
+  "trade_volume_tonnes": 245000
+}</pre>
+      </div>
+      <div class="api-tiers">
+        <div class="api-tier">
+          <div class="api-tier-name">Free</div>
+          <div class="api-tier-price">$0<span>/mo</span></div>
+          <div class="api-tier-detail">100 requests/day</div>
+          <ul>
+            <li>Mineral overview data</li>
+            <li>Current pricing</li>
+            <li>Basic trade flows</li>
+            <li>JSON responses</li>
+          </ul>
+        </div>
+        <div class="api-tier featured">
+          <div class="api-tier-name">Pro</div>
+          <div class="api-tier-price">$49<span>/mo</span></div>
+          <div class="api-tier-detail">10,000 requests/day</div>
+          <ul>
+            <li>All Free features</li>
+            <li>Historical pricing data</li>
+            <li>Company intelligence</li>
+            <li>Mine/facility database</li>
+            <li>Webhook alerts</li>
+          </ul>
+        </div>
+        <div class="api-tier">
+          <div class="api-tier-name">Enterprise</div>
+          <div class="api-tier-price">Custom</div>
+          <div class="api-tier-detail">Unlimited requests</div>
+          <ul>
+            <li>All Pro features</li>
+            <li>Bulk data export</li>
+            <li>Custom endpoints</li>
+            <li>Dedicated support</li>
+            <li>SLA guarantee</li>
+          </ul>
+        </div>
+      </div>
+      <div style="text-align:center;padding:1rem 0 2rem">
+        <a href="mailto:owen@prospectorlabs.io?subject=Critical%20Minerals%20API%20Access%20Request" class="api-cta">Request API Access →</a>
+      </div>
+    </div>
+  </div>
+
   <div class="detail" id="detail">
     <div class="detail-header">
       <h2 id="detail-title"></h2>
@@ -841,6 +1201,44 @@ body{
 </div>
 
 <!-- Country Modal -->
+<!-- V4: Search Overlay -->
+<div class="search-overlay" id="search-overlay" onclick="closeSearch()">
+  <div class="search-dialog" onclick="event.stopPropagation()">
+    <div class="search-input-wrap">
+      <span class="search-input-icon">
+        <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      </span>
+      <input type="text" class="search-input" id="search-input" placeholder="Search minerals, companies, countries, mines..." oninput="updateSearchResults()">
+      <span class="search-kbd">ESC</span>
+    </div>
+    <div class="search-results" id="search-results">
+      <div class="search-empty">Type to search across the entire dashboard</div>
+    </div>
+    <div class="search-footer">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Open</span>
+      <span><kbd>esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- V4: Report Modal -->
+<div class="report-modal-backdrop" id="report-backdrop" onclick="closeReportModal()">
+  <div class="report-modal" onclick="event.stopPropagation()">
+    <h3>📄 Generate Report</h3>
+    <p style="font-size:.8125rem;color:var(--text-secondary);margin-bottom:1rem">Select sections to include in your PDF export:</p>
+    <div class="report-option"><input type="checkbox" id="rpt-overview" checked><label for="rpt-overview">Overview Summary</label></div>
+    <div class="report-option"><input type="checkbox" id="rpt-pricing" checked><label for="rpt-pricing">Pricing Charts</label></div>
+    <div class="report-option"><input type="checkbox" id="rpt-trade" checked><label for="rpt-trade">Trade Flow Data</label></div>
+    <div class="report-option"><input type="checkbox" id="rpt-companies"><label for="rpt-companies">Company Explorer</label></div>
+    <div id="rpt-minerals-list" style="margin-top:.5rem"></div>
+    <div class="report-actions">
+      <button class="report-btn" onclick="closeReportModal()">Cancel</button>
+      <button class="report-btn primary" onclick="generateReport()">Export as PDF</button>
+    </div>
+  </div>
+</div>
+
 <div class="country-modal-backdrop" id="cm-backdrop" onclick="closeCountryModal()">
   <div class="country-modal" id="country-modal" onclick="event.stopPropagation()">
     <div class="cm-header">
@@ -1367,7 +1765,8 @@ function openCompanyPanel(companyName){
   if(!co) return;
   const panel = document.getElementById('side-panel');
   const backdrop = document.getElementById('sp-backdrop');
-  document.getElementById('sp-title').textContent = co.flag+' '+companyName;
+  const coWatched = isWatched('company',companyName);
+  document.getElementById('sp-title').innerHTML = co.flag+' '+companyName+` <button class="watch-btn ${coWatched?'watched':''}" style="margin-left:.5rem;vertical-align:middle" onclick="toggleWatch('company','${companyName.replace(/'/g,"\\'")}',this)" title="${coWatched?'Remove from watchlist':'Add to watchlist'}">★</button>`;
 
   const mineralColor = MINERAL_COLORS[co.minerals[0]] || '#3b82f6';
 
@@ -1780,6 +2179,8 @@ const sections=[
   {id:'pricing',label:'Pricing',fn:showPricingView},
   {id:'companies',label:'Companies',fn:showCompanies},
   {id:'minemap',label:'Mine Map',fn:showMineMap},
+  {id:'alerts',label:'Alerts',fn:showAlerts},
+  {id:'api',label:'API',fn:showAPIView},
 ];
 sections.forEach(s=>{
   const p=document.createElement('div');
@@ -1820,9 +2221,13 @@ Object.entries(MINERALS).forEach(([name,d])=>{
   const card=document.createElement('div');
   card.className='mineral-card';
   card.onclick=()=>showMineral(name);
+  const watched = isWatched('mineral',name);
   card.innerHTML=`
     <div class="mc-top">
-      <div class="mc-name">${name}</div>
+      <div class="mc-top-row">
+        <div class="mc-name">${name}</div>
+        <button class="watch-btn ${watched?'watched':''}" onclick="event.stopPropagation();toggleWatch('mineral','${name}',this)" title="${watched?'Remove from watchlist':'Add to watchlist'}">★</button>
+      </div>
       <span class="mc-badge ${risk}">${risk==='high'?'High Risk':risk==='med'?'Moderate':'Lower'}</span>
     </div>
     <div class="mc-import ${risk}">${d.importLabel}</div>
@@ -1853,6 +2258,8 @@ function hideAllViews(){
   document.getElementById('pricing-view').classList.remove('active');
   document.getElementById('companies-view').classList.remove('active');
   document.getElementById('minemap-view').classList.remove('active');
+  document.getElementById('alerts-view').classList.remove('active');
+  document.getElementById('api-view').classList.remove('active');
   destroyCharts();
 }
 
@@ -1862,6 +2269,8 @@ function showTrade(){hideAllViews();setActivePill('Trade Flows');document.getEle
 function showPricingView(){hideAllViews();setActivePill('Pricing');document.getElementById('pricing-view').classList.add('active');renderPricing()}
 function showCompanies(){hideAllViews();setActivePill('Companies');document.getElementById('companies-view').classList.add('active');renderCompanyExplorer()}
 function showMineMap(){hideAllViews();setActivePill('Mine Map');document.getElementById('minemap-view').classList.add('active');renderMineMap()}
+function showAlerts(){hideAllViews();setActivePill('Alerts');document.getElementById('alerts-view').classList.add('active');renderAlerts()}
+function showAPIView(){hideAllViews();setActivePill('API');document.getElementById('api-view').classList.add('active')}
 
 function showMineral(name){
   hideAllViews();
@@ -1954,6 +2363,7 @@ function renderTradeView(){
           <tr><th>Country</th><th class="num">Volume</th><th class="num">Value</th><th class="num">YoY</th></tr></thead>
           <tbody>${d.exporters.map(e=>`<tr><td><span class="clickable-country" onclick="openCountryModal('${e.country}','${mineral}')">${COUNTRY_FLAGS[e.country]||''} ${e.country}</span></td><td class="num">${fmtNum(e.volume)}</td><td class="num">${fmtVal(e.value)}</td><td class="num">${chgHtml(e.yoy)}</td></tr>`).join('')}</tbody>
         </table>
+        <div style="padding:.5rem 1rem;text-align:right"><button class="copy-btn" onclick="copyTableData(this.closest('.data-table-wrap').querySelector('table'),this)">Copy</button></div>
       </div>
       <div class="data-table-wrap">
         <table class="data-table">
@@ -1961,6 +2371,7 @@ function renderTradeView(){
           <tr><th>Country</th><th class="num">Volume</th><th class="num">Value</th><th class="num">YoY</th></tr></thead>
           <tbody>${d.importers.map(e=>`<tr><td><span class="clickable-country" onclick="openCountryModal('${e.country}','${mineral}')">${COUNTRY_FLAGS[e.country]||''} ${e.country}</span></td><td class="num">${fmtNum(e.volume)}</td><td class="num">${fmtVal(e.value)}</td><td class="num">${chgHtml(e.yoy)}</td></tr>`).join('')}</tbody>
         </table>
+        <div style="padding:.5rem 1rem;text-align:right"><button class="copy-btn" onclick="copyTableData(this.closest('.data-table-wrap').querySelector('table'),this)">Copy</button></div>
       </div>
     </div>
     <div class="us-import-card">
@@ -2419,8 +2830,440 @@ function updateSankeyFilters(){
   });
 }
 
-// Close panels on Escape
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCompanyPanel();closeCountryModal()}});
+// ══════════════════════════════════════════════════════════════
+// V4: DATA SERVICE (Live Pricing)
+// ══════════════════════════════════════════════════════════════
+const DataService = {
+  _cache: {},
+  _lastFetch: null,
+  _status: 'cached', // 'live' | 'cached' | 'loading'
+
+  async fetchLivePricing() {
+    this._status = 'loading';
+    this._updateBadges();
+    try {
+      // Try World Bank API (CORS-friendly for some endpoints)
+      const indicators = {
+        'Copper': 'PCOPPUSDM',
+        'Nickel': 'PNICKUSDM',
+        'Uranium (U₃O₈)': 'PURAN',
+        'Platinum': 'PPLAT',
+      };
+      const fetches = Object.entries(indicators).map(async ([name, code]) => {
+        try {
+          const url = `https://api.worldbank.org/v2/country/all/indicator/${code}?date=2024:2026&format=json&per_page=24`;
+          const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+          if (!resp.ok) throw new Error('Not OK');
+          const data = await resp.json();
+          if (data[1] && data[1].length > 0) {
+            const latest = data[1].find(d => d.value !== null);
+            if (latest) {
+              this._cache[name] = { value: Math.round(latest.value * 100) / 100, date: latest.date, source: 'World Bank' };
+            }
+          }
+        } catch (e) { /* individual fetch failed, use fallback */ }
+      });
+      await Promise.allSettled(fetches);
+      this._lastFetch = new Date();
+      this._status = Object.keys(this._cache).length > 0 ? 'live' : 'cached';
+    } catch (e) {
+      this._status = 'cached';
+    }
+    this._updateBadges();
+    return this._cache;
+  },
+
+  getPrice(name) {
+    if (this._cache[name]) return this._cache[name];
+    return null;
+  },
+
+  _updateBadges() {
+    document.querySelectorAll('.pricing-data-badge').forEach(el => {
+      el.className = 'data-badge pricing-data-badge ' + this._status;
+      el.textContent = this._status === 'loading' ? '⟳ Loading' : this._status === 'live' ? '● Live' : '○ Cached';
+    });
+    const ts = document.getElementById('pricing-last-fetched');
+    if (ts && this._lastFetch) {
+      ts.textContent = 'Last fetched: ' + this._lastFetch.toLocaleTimeString();
+    }
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// V4: WATCHLIST / ALERTS SYSTEM
+// ══════════════════════════════════════════════════════════════
+function getWatchlist() {
+  try { return JSON.parse(localStorage.getItem('cmt_watchlist') || '[]'); } catch(e) { return []; }
+}
+function saveWatchlist(wl) { localStorage.setItem('cmt_watchlist', JSON.stringify(wl)); }
+function isWatched(type, name) { return getWatchlist().some(w => w.type === type && w.name === name); }
+
+function toggleWatch(type, name, btn) {
+  let wl = getWatchlist();
+  const idx = wl.findIndex(w => w.type === type && w.name === name);
+  if (idx >= 0) {
+    wl.splice(idx, 1);
+    if(btn){btn.classList.remove('watched');btn.title='Add to watchlist'}
+  } else {
+    wl.push({ type, name, threshold: 5, addedAt: Date.now() });
+    if(btn){btn.classList.add('watched');btn.title='Remove from watchlist'}
+  }
+  saveWatchlist(wl);
+}
+
+const NEWS_ITEMS = [
+  {headline:'China Tightens Rare Earth Export Controls Amid Trade Tensions',date:'Feb 14, 2026',source:'Reuters',summary:'Beijing imposes new licensing requirements on rare earth exports, affecting neodymium and dysprosium shipments to Western nations.',mineral:'Rare Earths'},
+  {headline:'U.S. Approves $2.1B Loan for Arizona Lithium Processing Facility',date:'Feb 10, 2026',source:'DOE',summary:'Department of Energy backs domestic lithium hydroxide plant to reduce Chinese refining dependency.',mineral:'Lithium'},
+  {headline:'DRC Cobalt Royalty Dispute Resolved After 6-Month Standoff',date:'Feb 7, 2026',source:'Mining Weekly',summary:'CMOC and DRC government reach agreement on revised royalty structure for Tenke Fungurume operations.',mineral:'Cobalt'},
+  {headline:'Indonesia Nickel Export Ban Extended Through 2030',date:'Feb 3, 2026',source:'Bloomberg',summary:'Jakarta confirms raw nickel ore export prohibition will continue, pushing more domestic smelter investment.',mineral:'Nickel'},
+  {headline:'Germanium Prices Surge 80% as China Export Restrictions Hold',date:'Jan 28, 2026',source:'Fastmarkets',summary:'Spot germanium prices hit decade highs as Western buyers scramble for non-Chinese supply from Belgium and Canada.',mineral:'Germanium'},
+  {headline:'EU Critical Raw Materials Act: First Strategic Projects Designated',date:'Jan 22, 2026',source:'European Commission',summary:'12 mining and processing projects across Europe receive fast-track permitting under new CRMA framework.',mineral:'Rare Earths'},
+  {headline:'Copper Hits $9,500/t on AI Data Center Demand Surge',date:'Jan 15, 2026',source:'Financial Times',summary:'Massive copper wiring needs for AI infrastructure push prices higher despite slowing Chinese construction.',mineral:'Copper'},
+  {headline:'Trump Administration Imposes 25% Tariff on Chinese Graphite',date:'Jan 8, 2026',source:'WSJ',summary:'New tariffs target synthetic and natural graphite imports from China, accelerating domestic anode supply chain buildout.',mineral:'Graphite'},
+  {headline:'Uranium Spot Price Breaks $80/lb on Nuclear Renaissance',date:'Jan 2, 2026',source:'UxC',summary:'Growing nuclear power commitments from 22 countries at COP30 drive uranium prices to 15-year highs.',mineral:'Uranium'},
+  {headline:'Tungsten Added to China Export Control List',date:'Feb 12, 2026',source:'SCMP',summary:'China restricts tungsten exports citing national security, impacting global cutting tool and defense supply chains.',mineral:'Tungsten'},
+];
+
+function renderAlerts() {
+  const wl = getWatchlist();
+  const section = document.getElementById('watchlist-section');
+
+  if (wl.length === 0) {
+    section.innerHTML = '<div class="empty-watchlist">No items in your watchlist yet.<br><span style="font-size:.75rem;margin-top:.5rem;display:block">Star minerals, companies, or countries from anywhere in the app to track them here.</span></div>';
+  } else {
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:.75rem">';
+    wl.forEach((item, i) => {
+      let icon = '⭐', meta = '', click = '';
+      if (item.type === 'mineral') {
+        const m = MINERALS[item.name];
+        icon = '⚛️';
+        meta = m ? `Import reliance: ${m.importLabel} · China refining: ${m.chinaRefining}%` : '';
+        click = `showMineral('${item.name.replace(/'/g,"\\'")}')`;
+      } else if (item.type === 'company') {
+        const co = COMPANY_DB[item.name];
+        icon = co ? co.flag : '🏢';
+        meta = co ? `${co.mcap} · ${co.role}` : '';
+        click = `openCompanyPanel('${item.name.replace(/'/g,"\\'")}')`;
+      } else if (item.type === 'country') {
+        icon = COUNTRY_FLAGS[item.name] || '🌐';
+        meta = 'Country profile';
+        click = `openCountryModal('${item.name.replace(/'/g,"\\'")}','Lithium')`;
+      }
+      html += `
+        <div class="watchlist-card" onclick="${click}">
+          <div class="wl-left">
+            <span class="wl-icon">${icon}</span>
+            <div><div class="wl-name">${item.name}</div><div class="wl-meta">${meta}</div></div>
+          </div>
+          <div class="wl-right">
+            ${item.type === 'mineral' ? `<input type="number" class="threshold-input" value="${item.threshold||5}" min="1" max="50" title="Alert threshold %" onclick="event.stopPropagation()" onchange="updateThreshold(${i},this.value)">` : ''}
+            <button class="wl-remove" onclick="event.stopPropagation();removeWatchItem(${i})" title="Remove">✕</button>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+    section.innerHTML = html;
+  }
+
+  // Render news feed
+  const feed = document.getElementById('news-feed');
+  feed.innerHTML = NEWS_ITEMS.map(n => `
+    <div class="news-card">
+      <div class="news-headline">${n.headline}</div>
+      <div class="news-meta"><span class="news-source">${n.source}</span><span>${n.date}</span></div>
+      <div class="news-summary">${n.summary}</div>
+      <span class="news-tag" style="background:${MINERAL_COLORS[n.mineral]||'#3b82f6'}">${n.mineral}</span>
+    </div>
+  `).join('');
+}
+
+function removeWatchItem(idx) {
+  let wl = getWatchlist();
+  wl.splice(idx, 1);
+  saveWatchlist(wl);
+  renderAlerts();
+}
+
+function updateThreshold(idx, val) {
+  let wl = getWatchlist();
+  if (wl[idx]) wl[idx].threshold = parseInt(val) || 5;
+  saveWatchlist(wl);
+}
+
+// Check for alert conditions on load
+function checkAlertBanner() {
+  const wl = getWatchlist();
+  const alerts = [];
+  wl.forEach(item => {
+    if (item.type === 'mineral') {
+      // Check if any pricing data has significant YoY change
+      const pricingKeys = Object.keys(PRICING_DATA);
+      const match = pricingKeys.find(k => k.toLowerCase().includes(item.name.toLowerCase()));
+      if (match) {
+        const p = PRICING_DATA[match];
+        if (Math.abs(p.yoyChange) >= (item.threshold || 5)) {
+          alerts.push(`${item.name}: ${p.yoyChange > 0 ? '▲' : '▼'} ${Math.abs(p.yoyChange)}% YoY`);
+        }
+      }
+    }
+  });
+  if (alerts.length > 0) {
+    document.getElementById('alert-banner-text').textContent = 'Price alerts: ' + alerts.join(' · ');
+    document.getElementById('alert-banner').style.display = 'flex';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// V4: GLOBAL SEARCH (Cmd+K)
+// ══════════════════════════════════════════════════════════════
+let searchActiveIdx = -1;
+
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  const input = document.getElementById('search-input');
+  input.value = '';
+  input.focus();
+  searchActiveIdx = -1;
+  updateSearchResults();
+}
+
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+}
+
+function buildSearchIndex() {
+  const items = [];
+  Object.keys(MINERALS).forEach(m => items.push({ type: 'Mineral', name: m, icon: '⚛️', action: () => showMineral(m) }));
+  Object.keys(COMPANY_DB).forEach(c => {
+    const co = COMPANY_DB[c];
+    items.push({ type: 'Company', name: c, sub: `${co.flag} ${co.ticker} · ${co.role}`, icon: '🏢', action: () => openCompanyPanel(c) });
+  });
+  Object.keys(COUNTRY_PROFILES).forEach(c => {
+    items.push({ type: 'Country', name: c, icon: COUNTRY_FLAGS[c] || '🌐', action: () => openCountryModal(c, 'Lithium') });
+  });
+  FACILITIES_DB.forEach(f => {
+    items.push({ type: 'Mine/Facility', name: f.name, sub: `${f.company} · ${f.mineral} · ${f.type}`, icon: f.type === 'Mine' ? '⛏' : '⚙', action: () => { showMineMap(); } });
+  });
+  return items;
+}
+
+function updateSearchResults() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const results = document.getElementById('search-results');
+  searchActiveIdx = -1;
+
+  if (!q) {
+    results.innerHTML = '<div class="search-empty">Type to search across the entire dashboard</div>';
+    return;
+  }
+
+  const index = buildSearchIndex();
+  const matches = index.filter(item => {
+    return item.name.toLowerCase().includes(q) || (item.sub && item.sub.toLowerCase().includes(q));
+  }).slice(0, 20);
+
+  if (!matches.length) {
+    results.innerHTML = `<div class="search-empty">No results for "${q}"</div>`;
+    return;
+  }
+
+  // Group by type
+  const groups = {};
+  matches.forEach(m => { (groups[m.type] = groups[m.type] || []).push(m); });
+
+  let html = '';
+  Object.entries(groups).forEach(([type, items]) => {
+    html += `<div class="search-group-title">${type}s</div>`;
+    items.forEach((item, i) => {
+      html += `<div class="search-result" data-idx="${i}" onclick="executeSearchResult(this)" data-type="${item.type}" data-name="${item.name.replace(/"/g,'&quot;')}">
+        <span class="search-result-icon">${item.icon}</span>
+        <span class="search-result-name">${item.name}</span>
+        ${item.sub ? `<span class="search-result-sub">${item.sub}</span>` : ''}
+      </div>`;
+    });
+  });
+  results.innerHTML = html;
+
+  // Store actions
+  results._matches = matches;
+}
+
+function executeSearchResult(el) {
+  const name = el.dataset.name;
+  const type = el.dataset.type;
+  closeSearch();
+  const index = buildSearchIndex();
+  const match = index.find(i => i.name === name && i.type === type);
+  if (match) match.action();
+}
+
+// Keyboard navigation for search
+document.getElementById('search-input').addEventListener('keydown', function(e) {
+  const results = document.getElementById('search-results');
+  const items = results.querySelectorAll('.search-result');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchActiveIdx = Math.min(searchActiveIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('active', i === searchActiveIdx));
+    if (items[searchActiveIdx]) items[searchActiveIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchActiveIdx = Math.max(searchActiveIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('active', i === searchActiveIdx));
+    if (items[searchActiveIdx]) items[searchActiveIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && searchActiveIdx >= 0 && items[searchActiveIdx]) {
+    e.preventDefault();
+    items[searchActiveIdx].click();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// V4: REPORT / EXPORT
+// ══════════════════════════════════════════════════════════════
+function openReportModal() {
+  // Populate mineral checkboxes
+  const list = document.getElementById('rpt-minerals-list');
+  list.innerHTML = '<div style="font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.375rem">Mineral Deep-Dives</div>' +
+    Object.keys(MINERALS).map(m => `<div class="report-option" style="padding:.25rem 0"><input type="checkbox" id="rpt-m-${m.replace(/\s/g,'_')}" value="${m}"><label for="rpt-m-${m.replace(/\s/g,'_')}">${m}</label></div>`).join('');
+  document.getElementById('report-backdrop').classList.add('open');
+}
+
+function closeReportModal() {
+  document.getElementById('report-backdrop').classList.remove('open');
+}
+
+function generateReport() {
+  closeReportModal();
+  // Show relevant sections for printing
+  const inclOverview = document.getElementById('rpt-overview').checked;
+  const inclPricing = document.getElementById('rpt-pricing').checked;
+  const inclTrade = document.getElementById('rpt-trade').checked;
+  const inclCompanies = document.getElementById('rpt-companies').checked;
+
+  // Temporarily show all selected sections
+  const overview = document.getElementById('overview');
+  const pricingView = document.getElementById('pricing-view');
+  const tradeView = document.getElementById('trade-view');
+  const companiesView = document.getElementById('companies-view');
+
+  if (inclOverview) overview.style.display = '';
+  if (inclPricing) { pricingView.classList.add('active'); renderPricing(); }
+  if (inclTrade) { tradeView.classList.add('active'); renderTradeView(); }
+  if (inclCompanies) { companiesView.classList.add('active'); renderCompanyExplorer(); }
+
+  setTimeout(() => { window.print(); }, 300);
+}
+
+// Copy table data to clipboard
+function copyTableData(tableEl, btn) {
+  const rows = tableEl.querySelectorAll('tr');
+  let tsv = '';
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('th, td');
+    const vals = Array.from(cells).map(c => c.textContent.trim());
+    tsv += vals.join('\t') + '\n';
+  });
+  navigator.clipboard.writeText(tsv).then(() => {
+    if (btn) { btn.textContent = '✓ Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000); }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// V4: LIVE PRICING INTEGRATION IN RENDER
+// ══════════════════════════════════════════════════════════════
+const _origRenderPricing = renderPricing;
+// We override renderPricing to add badges and live data
+const _renderPricingOrig = function() {
+  // Call original minus charts (we rebuild)
+  destroyCharts();
+  const grid = document.getElementById('pricing-grid');
+  grid.innerHTML = '';
+  const cc = chartColors();
+  const dark = getTheme() === 'dark';
+
+  Object.entries(PRICING_DATA).forEach(([name, d], idx) => {
+    const liveData = DataService.getPrice(name);
+    const currentPrice = liveData ? liveData.value : d.current;
+    const card = document.createElement('div');
+    card.className = 'pricing-card';
+    const dir = d.yoyChange >= 0 ? 'up' : 'down';
+    const arrow = d.yoyChange >= 0 ? '▲' : '▼';
+    const fmtPrice = currentPrice >= 1000 ? '$' + currentPrice.toLocaleString() : '$' + currentPrice;
+    const badgeClass = liveData ? 'live' : 'cached';
+    const badgeText = liveData ? '● Live' : '○ Cached';
+
+    card.innerHTML = `
+      <div class="pricing-card-header">
+        <div class="pricing-card-left">
+          <h3>${name} <span class="data-badge pricing-data-badge ${badgeClass}">${badgeText}</span></h3>
+          <span class="pricing-unit">${d.unit}</span>
+        </div>
+        <div class="pricing-current">
+          <div class="price-big">${fmtPrice}</div>
+          <div class="price-change ${dir}">${arrow} ${Math.abs(d.yoyChange)}% YoY</div>
+        </div>
+      </div>
+      <div class="pricing-chart-wrap"><canvas id="priceChart${idx}"></canvas></div>
+    `;
+    grid.appendChild(card);
+
+    const ctx = document.getElementById('priceChart' + idx).getContext('2d');
+    charts['price' + idx] = new Chart(ctx, {
+      type: 'line',
+      data: { labels: d.labels, datasets: [{ data: d.prices, borderColor: d.color, backgroundColor: d.color + '18', fill: true, tension: .3, pointRadius: 0, pointHitRadius: 8, borderWidth: 2 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          backgroundColor: dark ? '#131316' : '#ffffff', titleColor: dark ? '#fafafa' : '#09090b', bodyColor: dark ? '#a1a1aa' : '#52525b',
+          borderColor: dark ? '#27272a' : '#e4e4e7', borderWidth: 1, titleFont: { family: 'Geist', weight: '600' }, bodyFont: { family: 'Geist Mono' }, padding: 10, cornerRadius: 8,
+          callbacks: { title: c => c[0].label, label: c => { const v = c.raw; if (d.unit.includes('/kg')) return `${name}: $${v}/kg`; if (d.unit.includes('/lb')) return `${name}: $${v}/lb`; if (d.unit.includes('/mtu')) return `${name}: $${v}/mtu`; if (d.unit.includes('/oz')) return `${name}: $${v}/oz`; return `${name}: $${v.toLocaleString()}`; } }
+        } },
+        scales: {
+          x: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 10, family: 'Geist Mono' }, maxRotation: 0, maxTicksLimit: 7 } },
+          y: { grid: { color: cc.grid }, ticks: { color: cc.tick, font: { size: 10, family: 'Geist Mono' }, callback: v => { if (d.unit.includes('/kg')) return '$' + v; if (d.unit.includes('/lb')) return '$' + v; if (d.unit.includes('/mtu')) return '$' + v; if (d.unit.includes('/oz')) return '$' + v; return '$' + v.toLocaleString(); } }, beginAtZero: false }
+        },
+        interaction: { intersect: false, mode: 'index' }
+      }
+    });
+  });
+};
+// Replace the original renderPricing
+renderPricing = _renderPricingOrig;
+
+// Update pricing section header with refresh button and last-fetched
+const pricingSectionHeader = document.querySelector('#pricing-view .section-header');
+if (pricingSectionHeader) {
+  const rightEl = document.createElement('div');
+  rightEl.style.cssText = 'display:flex;align-items:center;gap:.5rem';
+  rightEl.innerHTML = `
+    <span class="last-fetched" id="pricing-last-fetched"></span>
+    <button class="refresh-btn" id="pricing-refresh" onclick="refreshPricing()" title="Refresh pricing data">
+      <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/></svg>
+    </button>
+  `;
+  const existingAttr = pricingSectionHeader.querySelector('.section-attribution');
+  if (existingAttr) pricingSectionHeader.insertBefore(rightEl, existingAttr.nextSibling);
+  else pricingSectionHeader.appendChild(rightEl);
+}
+
+async function refreshPricing() {
+  const btn = document.getElementById('pricing-refresh');
+  btn.classList.add('spinning');
+  await DataService.fetchLivePricing();
+  btn.classList.remove('spinning');
+  if (document.getElementById('pricing-view').classList.contains('active')) renderPricing();
+}
+
+// Close panels on Escape & Cmd+K
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeCompanyPanel(); closeCountryModal(); closeSearch(); closeReportModal(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+});
+
+// Init: check alerts & try live pricing
+checkAlertBanner();
+DataService.fetchLivePricing();
 
 showOverview();
 </script>
