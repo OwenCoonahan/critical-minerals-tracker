@@ -14,6 +14,8 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -639,21 +641,21 @@ body{
 }
 .mm-map-container{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
-  padding:.5rem;overflow:hidden;position:relative;
+  overflow:hidden;position:relative;height:550px;
 }
-.mm-map-container svg{width:100%;display:block}
-.mm-map-container svg .land{fill:var(--bg-elevated);stroke:var(--border);stroke-width:.5}
-.mm-map-container svg .boundary{fill:none;stroke:var(--border);stroke-width:.3}
-.mm-tooltip{
-  position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:.75rem 1rem;font-family:var(--font-sans);font-size:.8125rem;
-  color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:1000;max-width:280px;
-  opacity:0;transition:opacity .12s;
+.mm-map-container .mapboxgl-canvas-container{border-radius:var(--radius-lg)}
+.mm-map-container .mapboxgl-popup{font-family:var(--font-sans);z-index:10}
+.mm-map-container .mapboxgl-popup-content{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.75rem 1rem;box-shadow:0 4px 16px rgba(0,0,0,.2);color:var(--text);font-size:.8125rem;
 }
-.mm-tooltip.visible{opacity:1}
-.mm-tooltip-name{font-weight:600;margin-bottom:.25rem}
-.mm-tooltip-company{color:var(--text-secondary);font-size:.75rem}
-.mm-tooltip-detail{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);margin-top:.25rem}
+.mm-map-container .mapboxgl-popup-tip{border-top-color:var(--surface)}
+.mm-map-container .mapboxgl-popup-close-button{color:var(--text-muted);font-size:1rem;padding:2px 6px}
+.mm-map-container .mapboxgl-popup-close-button:hover{color:var(--text);background:transparent}
+.mm-popup-name{font-weight:600;margin-bottom:.25rem}
+.mm-popup-company{color:var(--text-secondary);font-size:.75rem}
+.mm-popup-detail{font-family:var(--font-mono);font-size:.75rem;color:var(--accent);margin-top:.25rem}
+.mm-popup-type{font-size:.6875rem;color:var(--text-muted);margin-top:.125rem}
 .mm-legend{
   display:flex;flex-wrap:wrap;gap:.75rem;font-size:.75rem;color:var(--text-muted);margin-top:.75rem;
 }
@@ -676,6 +678,7 @@ body{
   .container{padding:1rem}
   .charts-grid,.trade-tables-grid{grid-template-columns:1fr}
   .overview-grid{grid-template-columns:1fr 1fr}
+  .mm-map-container{height:400px}
   .stats-row{grid-template-columns:1fr 1fr}
   .pricing-grid{grid-template-columns:1fr}
   .ce-grid{grid-template-columns:1fr}
@@ -825,12 +828,7 @@ body{
   <div class="tt-sub"></div>
 </div>
 
-<!-- Mine Map tooltip -->
-<div class="mm-tooltip" id="mm-tooltip">
-  <div class="mm-tooltip-name"></div>
-  <div class="mm-tooltip-company"></div>
-  <div class="mm-tooltip-detail"></div>
-</div>
+<!-- Mine Map uses Mapbox GL popups -->
 
 <!-- Company Side Panel -->
 <div class="side-panel-backdrop" id="sp-backdrop" onclick="closeCompanyPanel()"></div>
@@ -868,7 +866,7 @@ function setTheme(t){
   if(document.getElementById('sankey-view').classList.contains('active')) renderSankey();
   if(document.getElementById('pricing-view').classList.contains('active')) renderPricing();
   if(document.getElementById('trade-view').classList.contains('active')) renderTradeView();
-  if(document.getElementById('minemap-view').classList.contains('active')) renderMineMap();
+  if(document.getElementById('minemap-view').classList.contains('active')) switchMapboxStyle();
 }
 function toggleTheme(){setTheme(getTheme()==='dark'?'light':'dark')}
 if(localStorage.getItem('theme'))setTheme(localStorage.getItem('theme'));else setTheme('dark');
@@ -2145,61 +2143,140 @@ function setMMType(type,el){
   renderMineMap();
 }
 
+let mapboxMap = null;
+let mapboxPopup = null;
+let mapboxHoverPopup = null;
+
+function getMapStyle(){
+  return getTheme()==='dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11';
+}
+
+function buildGeoJSON(){
+  return {
+    type:'FeatureCollection',
+    features: FACILITIES_DB.map((f,i)=>({
+      type:'Feature',
+      id:i,
+      geometry:{type:'Point',coordinates:[f.lng,f.lat]},
+      properties:{name:f.name,company:f.company,mineral:f.mineral,type:f.type,country:f.country,capacity:f.capacity,color:MINERAL_COLORS[f.mineral]||'#3b82f6'}
+    }))
+  };
+}
+
+function getMapFilters(){
+  const filters = ['all'];
+  if(mmMineralFilter!=='All') filters.push(['==',['get','mineral'],mmMineralFilter]);
+  if(mmTypeFilter==='Mine') filters.push(['==',['get','type'],'Mine']);
+  if(mmTypeFilter==='Refinery') filters.push(['==',['get','type'],'Refinery']);
+  return filters.length===1 ? null : filters;
+}
+
+function applyMapFilters(){
+  if(!mapboxMap || !mapboxMap.getLayer('facilities-mines')) return;
+  const f = getMapFilters();
+  const mineFilter = f ? ['all',...f.slice(1),['==',['get','type'],'Mine']] : ['==',['get','type'],'Mine'];
+  const refFilter = f ? ['all',...f.slice(1),['==',['get','type'],'Refinery']] : ['==',['get','type'],'Refinery'];
+  mapboxMap.setFilter('facilities-mines', mineFilter);
+  mapboxMap.setFilter('facilities-refineries', refFilter);
+  mapboxMap.setFilter('facilities-refinery-border', refFilter);
+}
+
+function setupMapLayers(){
+  const geojson = buildGeoJSON();
+  if(mapboxMap.getSource('facilities')) mapboxMap.removeSource('facilities');
+
+  // Remove old layers if exist
+  ['facilities-mines','facilities-refineries','facilities-refinery-border'].forEach(id=>{
+    if(mapboxMap.getLayer(id)) mapboxMap.removeLayer(id);
+  });
+  if(mapboxMap.getSource('facilities')) mapboxMap.removeSource('facilities');
+
+  mapboxMap.addSource('facilities',{type:'geojson',data:geojson});
+
+  // Mines - circles
+  mapboxMap.addLayer({
+    id:'facilities-mines',type:'circle',source:'facilities',
+    filter:['==',['get','type'],'Mine'],
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],1,4,5,7,10,10],
+      'circle-color':['get','color'],
+      'circle-opacity':0.85,
+      'circle-stroke-width':1,
+      'circle-stroke-color':getTheme()==='dark'?'#09090b':'#ffffff'
+    }
+  });
+
+  // Refineries - larger circles with thicker border
+  mapboxMap.addLayer({
+    id:'facilities-refinery-border',type:'circle',source:'facilities',
+    filter:['==',['get','type'],'Refinery'],
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],1,6,5,9,10,13],
+      'circle-color':getTheme()==='dark'?'#09090b':'#ffffff',
+      'circle-opacity':1,
+      'circle-stroke-width':0
+    }
+  });
+  mapboxMap.addLayer({
+    id:'facilities-refineries',type:'circle',source:'facilities',
+    filter:['==',['get','type'],'Refinery'],
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],1,5,5,8,10,12],
+      'circle-color':['get','color'],
+      'circle-opacity':0.85,
+      'circle-stroke-width':2,
+      'circle-stroke-color':getTheme()==='dark'?'#09090b':'#ffffff'
+    }
+  });
+
+  applyMapFilters();
+
+  // Hover popup
+  mapboxHoverPopup = new mapboxgl.Popup({closeButton:false,closeOnClick:false,offset:12,className:'mm-hover-popup'});
+
+  const interactiveLayers = ['facilities-mines','facilities-refineries'];
+
+  interactiveLayers.forEach(layerId=>{
+    mapboxMap.on('mouseenter',layerId,e=>{
+      mapboxMap.getCanvas().style.cursor='pointer';
+      const f=e.features[0].properties;
+      const icon = f.type==='Mine'?'⛏':'⚙';
+      mapboxHoverPopup.setLngLat(e.features[0].geometry.coordinates)
+        .setHTML(`<div class="mm-popup-name">${icon} ${f.name}</div><div class="mm-popup-company">${f.company} · ${f.country}</div><div class="mm-popup-detail">${f.mineral} · ${f.capacity}</div><div class="mm-popup-type">${f.type}</div>`)
+        .addTo(mapboxMap);
+    });
+    mapboxMap.on('mouseleave',layerId,()=>{
+      mapboxMap.getCanvas().style.cursor='';
+      mapboxHoverPopup.remove();
+    });
+    mapboxMap.on('click',layerId,e=>{
+      const f=e.features[0].properties;
+      const coName = Object.keys(COMPANY_DB).find(name=>f.company.includes(name));
+      if(coName) openCompanyPanel(coName);
+    });
+  });
+}
+
 function renderMineMap(){
   const container = document.getElementById('mm-map-container');
-  container.innerHTML='';
-  const dark = getTheme()==='dark';
-  const w = container.clientWidth;
-  const h = Math.max(400, Math.min(600, w*0.5));
 
-  // Filter facilities
-  let facilities = FACILITIES_DB.filter(f=>{
-    if(mmMineralFilter!=='All' && f.mineral!==mmMineralFilter) return false;
-    if(mmTypeFilter==='Mine' && f.type!=='Mine') return false;
-    if(mmTypeFilter==='Refinery' && f.type!=='Refinery') return false;
-    return true;
-  });
-
-  const svg = d3.select(container).append('svg').attr('width',w).attr('height',h);
-
-  // Simple equirectangular projection
-  const projection = d3.geoNaturalEarth1().fitSize([w,h],{type:'Sphere'});
-  const path = d3.geoPath().projection(projection);
-
-  // Draw a simple world - use sphere outline + graticule
-  svg.append('path')
-    .datum({type:'Sphere'})
-    .attr('d',path)
-    .attr('fill',dark?'#0f0f12':'#f4f4f5')
-    .attr('stroke',dark?'#27272a':'#d4d4d8')
-    .attr('stroke-width',1);
-
-  // Graticule
-  svg.append('path')
-    .datum(d3.geoGraticule10())
-    .attr('d',path)
-    .attr('fill','none')
-    .attr('stroke',dark?'#1a1a1f':'#e4e4e7')
-    .attr('stroke-width',0.3);
-
-  // Load world map from topojson CDN
-  const worldUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
-
-  d3.json(worldUrl).then(world=>{
-    const countries = topojson.feature(world, world.objects.countries);
-    svg.insert('g',':first-child').selectAll('path')
-      .data(countries.features)
-      .join('path')
-      .attr('d',path)
-      .attr('fill',dark?'#1a1a1f':'#e8e8ec')
-      .attr('stroke',dark?'#27272a':'#d4d4d8')
-      .attr('stroke-width',0.5);
-
-    drawFacilities(svg, facilities, projection, dark);
-  }).catch(()=>{
-    // Fallback - just draw dots without land
-    drawFacilities(svg, facilities, projection, dark);
-  });
+  if(!mapboxMap){
+    mapboxgl.accessToken=['pk.eyJ1Ijoib3dlbi1jb29uYWhhbiIsImEiOiJjbWow','dmR2a20wZDVtM2Vwem5idGFpYm5vIn0.','cgIL7QDk0gaaueSLBi8cjQ'].join('');
+    container.innerHTML='';
+    mapboxMap = new mapboxgl.Map({
+      container:container,
+      style:getMapStyle(),
+      center:[20,20],
+      zoom:1.5,
+      scrollZoom:true,
+      dragPan:true,
+      attributionControl:true,
+    });
+    mapboxMap.addControl(new mapboxgl.NavigationControl(),'top-right');
+    mapboxMap.on('style.load',()=>{setupMapLayers()});
+  } else {
+    applyMapFilters();
+  }
 
   // Legend
   const legendEl = document.getElementById('mm-legend');
@@ -2209,54 +2286,10 @@ function renderMineMap(){
     '<span><div class="mm-legend-sq" style="background:transparent;border:2px solid var(--text-muted)"></div>Refinery</span>';
 }
 
-function drawFacilities(svg, facilities, projection, dark){
-  const tooltip = document.getElementById('mm-tooltip');
-
-  const g = svg.append('g');
-
-  g.selectAll('.facility')
-    .data(facilities)
-    .join('g')
-    .attr('class','facility')
-    .attr('transform',d=>{
-      const coords = projection([d.lng, d.lat]);
-      return coords ? `translate(${coords[0]},${coords[1]})` : 'translate(-999,-999)';
-    })
-    .each(function(d){
-      const el = d3.select(this);
-      const color = MINERAL_COLORS[d.mineral] || '#3b82f6';
-      const size = d.type==='Mine' ? 5 : 4;
-
-      if(d.type==='Mine'){
-        el.append('circle').attr('r',size).attr('fill',color).attr('fill-opacity',0.85).attr('stroke',dark?'#09090b':'#fff').attr('stroke-width',1);
-      } else {
-        el.append('rect').attr('x',-size).attr('y',-size).attr('width',size*2).attr('height',size*2)
-          .attr('rx',2).attr('fill',color).attr('fill-opacity',0.85).attr('stroke',dark?'#09090b':'#fff').attr('stroke-width',1);
-      }
-    })
-    .style('cursor','pointer')
-    .on('mouseover',function(evt,d){
-      tooltip.querySelector('.mm-tooltip-name').textContent = (d.type==='Mine'?'⛏ ':'⚙ ') + d.name;
-      tooltip.querySelector('.mm-tooltip-company').textContent = d.company + ' · ' + d.country;
-      tooltip.querySelector('.mm-tooltip-detail').textContent = d.mineral + ' · ' + d.capacity;
-      tooltip.style.left = evt.clientX+12+'px';
-      tooltip.style.top = evt.clientY-10+'px';
-      tooltip.classList.add('visible');
-      d3.select(this).select('circle,rect').attr('fill-opacity',1).attr('stroke-width',2);
-    })
-    .on('mousemove',function(evt){
-      tooltip.style.left = evt.clientX+12+'px';
-      tooltip.style.top = evt.clientY-10+'px';
-    })
-    .on('mouseout',function(){
-      tooltip.classList.remove('visible');
-      d3.select(this).select('circle,rect').attr('fill-opacity',0.85).attr('stroke-width',1);
-    })
-    .on('click',function(evt,d){
-      // Try to open company panel if company matches
-      const coName = Object.keys(COMPANY_DB).find(name => d.company.includes(name));
-      if(coName) openCompanyPanel(coName);
-    });
+function switchMapboxStyle(){
+  if(mapboxMap){
+    mapboxMap.setStyle(getMapStyle());
+  }
 }
 
 // ── SANKEY DIAGRAM ──
